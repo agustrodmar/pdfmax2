@@ -1,5 +1,5 @@
 <?php
-require_once '../model/pdfExtractorModel.php';
+require_once '../model/PdfExtractorModel.php';
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);

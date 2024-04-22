@@ -13,7 +13,7 @@
 <main>
     <section>
         <h2>Seleccione un archivo PDF y especifique las páginas que desea extraer:</h2>
-        <form action="../controller/pdfExtractorController.php" method="post" enctype="multipart/form-data">
+        <form action="../controller/PdfExtractorController.php" method="post" enctype="multipart/form-data">
             <label for="pdfArchivo">Archivo PDF:</label>
             <input type="file" name="pdfArchivo" id="pdfArchivo" required>
             <label for="paginas">Páginas a extraer (separadas por comas):</label>

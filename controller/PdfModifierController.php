@@ -1,12 +1,11 @@
 <?php
-require_once '../model/pdfModifierModel.php';
+require_once '../model/PdfModifierModel.php';
 session_start();
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 ini_set('',1);
-require_once '../model/pdfModifierModel.php';
 
 class PDFModifierController {
 
@@ -16,7 +15,7 @@ class PDFModifierController {
      */
     public function showModifierPage(): void {
         // Lógica para mostrar la página de modificación
-        include '../view/modifierView.php';
+        include '../view/ModifierView.php';
     }
 
     /**

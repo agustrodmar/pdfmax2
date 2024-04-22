@@ -1,6 +1,6 @@
 
 <?php
-require_once '../controller/pdfModifierController.php';
+require_once '../controller/PdfModifierController.php';
 
 echo "Archivo PDFModifierController.php incluido correctamente";
 

@@ -1,23 +1,21 @@
 <?php
 ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+ini_set('log_errors', '1');
+ini_set('error_reporting', E_ALL);
 
-class pdfOptimizerModel {
-    public static function optimizePDF($inputFile, $outputFile, $quality): bool {
-        // Agrego la ruta  /usr/bin a la variable de entorno PATH
-        putenv("PATH=/usr/bin:" . getenv("PATH"));
-
-        // Ruta completa al ejecutable Ghostscript
+class PdfOptimizerModel {
+    public static function optimizePdf($inputFile, $outputFile): bool {
+        // Ruta completa al ejecutable de Ghostscript
         $gsPath = '/usr/bin/gs';
 
-        // Comando de Ghostscript para optimizar el PDF
+        // Crear el comando para Ghostscript
+        $quality = $_POST['quality'];
         $command = "$gsPath -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/$quality -dNOPAUSE -dQUIET -dBATCH -sOutputFile=$outputFile $inputFile";
 
-        // ahora se ejectuta el comando de Ghostscript
+        // Ejecutar el comando
         exec($command, $output, $returnVar);
 
-        // if exitosa...
+        // Verificar si la optimización fue exitosa
         if ($returnVar === 0) {
             return true; // Optimización exitosa
         } else {
