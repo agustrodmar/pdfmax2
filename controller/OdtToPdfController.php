@@ -5,25 +5,16 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 require_once(__DIR__ . '/../model/OdtToPdfModel.php');
 
-/**
- * Controlador que maneja la solicitud de conversión de documentos.
- */
 class OdtToPdfController {
-    private $model;
+    private OdtToPdfModel $model;
 
-    /**
-     * Constructor que inicializa el modelo de conversión.
-     */
     public function __construct() {
         $this->model = new OdtToPdfModel();
     }
 
-    /**
-     * Procesa la solicitud de conversión de un archivo ODT a PDF.
-     * Envía el archivo PDF resultante al cliente o muestra un mensaje de error.
-     */
     public function convert(): void {
         $file = $_FILES['file']['tmp_name'];
+        error_log("Temporary file path: " . $file);
 
         $outputFile = $this->model->convertToPdf($file);
 
@@ -36,7 +27,7 @@ class OdtToPdfController {
             header('Pragma: public');
             header('Content-Length: ' . filesize($outputFile));
             readfile($outputFile);
-            unlink($outputFile);  // Elimina el archivo PDF temporal
+            unlink($outputFile);  // Limpia el archivo PDF temporal
             exit;
         } else {
             echo "Error al convertir el archivo ODT a PDF.";
