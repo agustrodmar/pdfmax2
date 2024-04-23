@@ -1,23 +1,49 @@
 <?php
 
 require_once(__DIR__ . '/../model/PdfToTextModel.php');
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-class pdfToTextController {
+class PdfToTextController {
     private $model;
 
     public function __construct() {
-        $this->model = new pdfToTextModel();
+        $this->model = new PdfToTextModel();
     }
 
-    public function convert($file, $format) {
+    public function convert(): void
+    {
+        $file = $_FILES['file']['tmp_name'];
+        $format = $_POST['format'];
+
         if ($format == 'txt') {
-            return $this->model->convertToText($file);
+            $output = $this->model->convertToText($file);
+            $filename = 'output.txt';
+            $contentType = 'text/plain';
         } else if ($format == 'odt') {
-            return $this->model->convertToOdt($file);
+            $output = $this->model->convertToOdt($file);
+            $filename = 'output.odt';
+            $contentType = 'application/vnd.oasis.opendocument.text';
+        }
+
+        if ($output) {
+            header('Content-Description: File Transfer');
+            header('Content-Type: ' . $contentType);
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . strlen($output));
+            echo $output;
+            exit;
+        } else {
+            echo "Error al convertir el archivo.";
         }
     }
 }
+
+$controller = new PdfToTextController();
+$controller->convert();
 
