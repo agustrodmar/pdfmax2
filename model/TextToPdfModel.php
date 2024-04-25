@@ -5,51 +5,59 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 /**
- * Clase que maneja la conversión de documentos ODT a PDF utilizando LibreOffice.
+ * Clase que maneja la conversión de documentos a PDF utilizando LibreOffice y pdftk.
  */
 class TextToPdfModel {
-    private $libreOfficeHome;
+    private string $libreOfficeHome;
 
+    /**
+     * Constructor de la clase.
+     * Inicializa el directorio home de LibreOffice.
+     */
     public function __construct() {
         $this->libreOfficeHome = getenv('LIBREOFFICE_HOME') ?: '/tmp/libreoffice_home';
     }
 
     /**
-     * @throws Exception
+     * Convierte un archivo a PDF y extrae un rango específico de páginas.
+     *
+     * @param string $file Ruta del archivo original a convertir.
+     * @param string $pages Rango de páginas a extraer del documento convertido.
+     * @return string Ruta del archivo PDF final con las páginas especificadas.
+     * @throws Exception Si el archivo no existe, no se puede leer, la conversión falla, o la extracción de páginas falla.
      */
     public function convertToPdf(string $file, string $pages): string {
         if (!file_exists($file) || !is_readable($file)) {
             throw new Exception("El archivo especificado no existe o no se puede leer.");
         }
 
-        if (!$this->validatePageRange($pages)) {
-            throw new Exception("El rango de páginas especificado no es válido.");
-        }
-
         $outputDir = sys_get_temp_dir();
-        $outputFileName = basename($file, ".odt") . ".pdf";
+        $outputFileName = basename($file, '.' . pathinfo($file, PATHINFO_EXTENSION)) . ".pdf";
         $outputFile = $outputDir . '/' . $outputFileName;
 
-        $formattedPages = $this->formatPageRange($pages);
-        $command = "HOME=" . escapeshellarg($this->libreOfficeHome) . " libreoffice --headless --convert-to pdf:writer_pdf_Export --outdir "
-            . escapeshellarg($outputDir) . " " . escapeshellarg($file) . " PageRange=" . escapeshellarg($formattedPages);
+        $command = "HOME=$this->libreOfficeHome libreoffice --headless --convert-to pdf:writer_pdf_Export --outdir "
+            . escapeshellarg($outputDir) . " " . escapeshellarg($file);
 
-        $output = [];
-        $return_var = 0;
-        exec($command, $output, $return_var);
+        exec($command, $output, $returnVar);
+        sleep(1); // Añado el sleep para asegurar que el sistema de archivos se actualiza.
 
-        if ($return_var !== 0 || !file_exists($outputFile) || filesize($outputFile) === 0) {
-            throw new Exception("La conversión falló. LibreOffice no pudo convertir el archivo.");
+        if ($returnVar !== 0 || !file_exists($outputFile) || filesize($outputFile) === 0) {
+            throw new Exception("La conversión inicial falló. LibreOffice no pudo convertir el archivo.");
         }
 
-        return $outputFile;
-    }
+        // Ruta del archivo PDF final que contendrá solo las páginas seleccionadas
+        $finalOutputFile = $outputDir . '/' . 'final_' . $outputFileName;
 
-    private function validatePageRange(string $pages): bool {
-        return preg_match('/^\d+(-\d+)?(,\s*\d+(-\d+)?)*$/', $pages);
-    }
+        // Comando para extraer rangos de páginas usando pdftk
+        $pdftkCommand = "pdftk " . escapeshellarg($outputFile) . " cat " . escapeshellarg($pages) . " output " . escapeshellarg($finalOutputFile);
+        exec($pdftkCommand, $pdftkOutput, $pdftkReturnVar);
 
-    private function formatPageRange(string $pages): string {
-        return str_replace(' ', '', $pages);
+        if ($pdftkReturnVar !== 0 || !file_exists($finalOutputFile) || filesize($finalOutputFile) === 0) {
+            throw new Exception("Error al extraer el rango de páginas con pdftk.");
+        }
+
+        unlink($outputFile); // Eliminar el PDF completo generado inicialmente.
+
+        return $finalOutputFile;
     }
 }

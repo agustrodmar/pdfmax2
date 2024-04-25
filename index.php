@@ -18,8 +18,8 @@
         <p>Para optimizar el tamaño de un PDF<a href="view/OptimizerView.php">haz clic aquí</a></p>
         <p>Para transformar un PDF a PNG, JPEG o SVG<a href="view/PdfConverterView.php">haz clic aquí</a></p>
         <p>Para convertir un PDF en odt o txt <a href="view/PdfToTextView.php">haz clic aquí</a></p>
-        <p>Para convertir un odt en PDF<a href="view/TextToPdfView.php">haz clic aquí</a></p>
-        <p>Para convertir un docx en PDF<a href="view/DocxToPdfView.php">haz clic aquí</a></p>
+        <p>Para convertir un odt, docx, o txt en PDF<a href="view/TextToPdfView.php">haz clic aquí</a></p>
+
 
 
     </section>

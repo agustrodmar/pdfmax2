@@ -9,7 +9,7 @@ class MetadataFormatter
      * @param string $dateString Cadena de fecha en formato específico de PDF.
      * @return string Fecha formateada o la cadena original si no cumple con el formato esperado.
      */
-    public static function formatPdfDate($dateString)
+    public static function formatPdfDate(string $dateString): string
     {
         if (preg_match('/D:(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/', $dateString, $matches)) {
             return sprintf("%02d/%02d/%04d %02d:%02d:%02d", $matches[3], $matches[2], $matches[1], $matches[4], $matches[5], $matches[6]);
@@ -23,7 +23,7 @@ class MetadataFormatter
      * @param string $metadata Metadatos en formato de texto crudo.
      * @return array Metadatos formateados como un arreglo asociativo.
      */
-    public static function getFriendlyMetadata($metadata): array
+    public static function getFriendlyMetadata(string $metadata): array
     {
         $friendlyMetadata = [];
         $lines = explode("\n", $metadata);
