@@ -16,15 +16,4 @@ class PdfMetaModifierModel {
         return shell_exec($command);
     }
 
-    public function updateMetaData($filePath, $newMetaData): string
-    {
-        $metaDataFile = tempnam(sys_get_temp_dir(), 'meta');
-        file_put_contents($metaDataFile, $newMetaData);
-
-        $newFilePath = $filePath . '_modified.pdf';
-        $command = "pdftk " . escapeshellarg($filePath) . " update_info " . escapeshellarg($metaDataFile) . " output " . escapeshellarg($newFilePath);
-        shell_exec($command);
-
-        return $newFilePath;
-    }
 }

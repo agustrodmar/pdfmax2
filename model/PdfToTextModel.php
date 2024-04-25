@@ -1,17 +1,32 @@
 <?php
-
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+/**
+ * Modelo para la conversión de archivos PDF a texto y ODT.
+ */
 class pdfToTextModel {
-    public function convertToText($file): bool|string|null
+    /**
+     * Convierte un archivo PDF a texto.
+     *
+     * @param string $file Ruta del archivo PDF a convertir.
+     * @return bool|string|null Texto extraído del PDF.
+     */
+    public function convertToText(string $file): bool|string|null
     {
         $command = "pdftotext " . escapeshellarg($file) . " -";
         return shell_exec($command);
     }
 
-    public function convertToOdt($file): string
+    /**
+     * Convierte un archivo PDF a ODT.
+     *
+     * @param string $file Ruta del archivo PDF a convertir.
+     * @return string Contenido del archivo ODT generado.
+     * @throws Exception Si no se pudo crear el archivo de salida.
+     */
+    public function convertToOdt(string $file): string
     {
         $outputDir = sys_get_temp_dir();
         $htmlFile = tempnam($outputDir, 'output') . '.html';
@@ -26,14 +41,13 @@ class pdfToTextModel {
         shell_exec($command);
 
         if (!file_exists($odtFile) || filesize($odtFile) === 0) {
-            return "Error generating ODT file.";
+            throw new Exception("Error generating ODT file.");
         }
 
         $odtContent = file_get_contents($odtFile);
-        unlink($htmlFile);  // Clean up the temporary HTML file
-        unlink($odtFile);   // Clean up the temporary ODT file
+        unlink($htmlFile);
+        unlink($odtFile);
         return $odtContent;
     }
 }
-
 

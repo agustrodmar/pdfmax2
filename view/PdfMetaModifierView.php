@@ -39,6 +39,9 @@ if (isset($_SESSION['metadata'])) {
         <input type="text" id="keywords" name="keywords" value="<?php echo htmlspecialchars($friendlyMetadata['Palabras Clave'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"><br>
         <input type="submit" name="submit" value="Guardar Cambios">
     </form>
+    <?php if (isset($_SESSION['downloadPath'])): ?>
+        <a href="../utils/downloadPhp.php">Descargar PDF Actualizado</a>
+    <?php endif; ?>
 <?php endif; ?>
 </body>
 </html>

@@ -1,10 +1,18 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('log_errors', '1');
-ini_set('error_reporting', E_ALL);
 
+/**
+ * Modelo para la optimización de archivos PDF.
+ */
 class PdfOptimizerModel {
-    public static function optimizePdf($inputFile, $outputFile): bool {
+    /**
+     * Optimiza un archivo PDF utilizando Ghostscript.
+     *
+     * @param string $inputFile Ruta del archivo PDF a optimizar.
+     * @param string $outputFile Ruta del archivo PDF optimizado.
+     * @return bool Verdadero si la optimización fue exitosa, falso en caso contrario.
+     * @throws Exception Si hay un error durante la optimización.
+     */
+    public static function optimizePdf(string $inputFile, string $outputFile): bool {
         // Ruta completa al ejecutable de Ghostscript
         $gsPath = '/usr/bin/gs';
 
@@ -19,8 +27,7 @@ class PdfOptimizerModel {
         if ($returnVar === 0) {
             return true; // Optimización exitosa
         } else {
-            echo "Error al ejecutar Ghostscript. Código de retorno: $returnVar";
-            return false; // Error en la optimización
+            throw new Exception("Error al ejecutar Ghostscript. Código de retorno: $returnVar");
         }
     }
 }

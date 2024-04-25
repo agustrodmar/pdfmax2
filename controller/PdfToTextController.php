@@ -7,12 +7,15 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 class PdfToTextController {
-    private $model;
+    private PdfToTextModel $model;
 
     public function __construct() {
         $this->model = new PdfToTextModel();
     }
 
+    /**
+     * @throws Exception
+     */
     public function convert(): void
     {
         $file = $_FILES['file']['tmp_name'];
@@ -45,5 +48,8 @@ class PdfToTextController {
 }
 
 $controller = new PdfToTextController();
-$controller->convert();
+try {
+    $controller->convert();
+} catch (Exception $e) {
+}
 
