@@ -1,5 +1,8 @@
 <?php
 require_once __DIR__ . '/../model/PdfConverterModel.php';
+require_once __DIR__ . '/../utils/Zipper.php';
+
+use Utils\Zipper;
 
 
 /**
@@ -12,6 +15,7 @@ class PdfConverterController
     public function __construct()
     {
         $this->model = new PdfConverterModel();
+        $this->zipper = new Zipper();
     }
 
     /**
@@ -32,7 +36,7 @@ class PdfConverterController
                     $this->model->convertPdf($inputFile, $outputFile, $format, $page);
                 }
 
-                $zipFile = $this->createZip($outputBase, $format);
+                $zipFile = $this->zipper->createZip($outputBase, $format);
 
                 // Los encabezados HTTP y la respuesta
                 header('Content-Type: application/zip');
@@ -49,36 +53,6 @@ class PdfConverterController
         } else {
             echo "Método no soportado o datos faltantes.";
         }
-    }
-
-    /**
-     * Crea un archivo ZIP con todos los archivos de salida generados.
-     * @param string $outputFilesBase Ruta base de los archivos de salida.
-     * @param string $format Formato de los archivos de salida.
-     * @return string Ruta del archivo ZIP creado.
-     */
-    private function createZip(string $outputFilesBase, string $format): string
-    {
-        $zip = new ZipArchive();
-        $zipFilename = $outputFilesBase . '.zip';
-        $extension = $format === 'jpeg' ? 'jpg' : $format; // para manejar correctamente JPEG
-
-        // patrón glob para incluir correctamente SVG que no tiene múltiples archivos con sufijos
-        $files = glob($outputFilesBase . '*.' . $extension);
-        if (!$files) {
-            exit("No se encontraron archivos generados.");
-        }
-
-        if ($zip->open($zipFilename, ZipArchive::CREATE) !== TRUE) {
-            exit("Cannot open <$zipFilename>\n");
-        }
-
-        foreach ($files as $file) {
-            $zip->addFile($file, basename($file));
-        }
-
-        $zip->close();
-        return $zipFilename;
     }
 
     /**
