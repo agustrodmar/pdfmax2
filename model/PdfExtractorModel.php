@@ -14,6 +14,7 @@ class PDFExtractorModel {
      * @throws Exception Si no se puede crear el archivo de salida.
      */
     public function extraerPaginas(string $pdfPath, string $paginas, string $outputPath): string {
+        set_time_limit(500);
         $comando = "pdftk $pdfPath cat $paginas output $outputPath 2>&1";
         $salida = shell_exec($comando);
 

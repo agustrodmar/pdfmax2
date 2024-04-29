@@ -44,8 +44,9 @@ class Zipper
      * @return string Ruta del archivo ZIP creado.
      */
     public function createPdfZip(array $outputPaths): string {
+        set_time_limit(500);
         $zip = new ZipArchive();
-        $zipFilename = sys_get_temp_dir() . '/PDFs.zip';
+        $zipFilename = __DIR__ . '/../tmps/' . '/PDFs.zip';
 
         if ($zip->open($zipFilename, ZipArchive::CREATE) !== TRUE) {
             error_log("Cannot open <$zipFilename>");

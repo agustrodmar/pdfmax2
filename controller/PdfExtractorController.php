@@ -25,7 +25,7 @@ class PDFExtractorController {
 
             $pdfArchivo = $_FILES["pdfArchivo"]["tmp_name"];
             $paginas = str_replace(",", " ", $_POST["paginas"]);
-            $outputFileName = tempnam(sys_get_temp_dir(), 'PDF') . '.pdf';
+            $outputFileName = __DIR__ . '/../tmps/' . 'PDF' . '.pdf';
 
             $pdfExtractor = new PDFExtractorModel();
             $pdfExtractor->extraerPaginas($pdfArchivo, $paginas, $outputFileName);
@@ -52,6 +52,7 @@ class PDFExtractorController {
     public function procesarSolicitudIndividual(): string
     {
         try {
+            set_time_limit(500);
             if ($_SERVER["REQUEST_METHOD"] !== "POST") {
                 throw new Exception("Error: La solicitud debe ser de tipo POST.");
             }
@@ -62,7 +63,9 @@ class PDFExtractorController {
 
             $pdfArchivo = $_FILES["pdfArchivo"]["tmp_name"];
             $paginas = str_replace(",", " ", $_POST["paginas"]);
-            $outputFilesBase = tempnam(sys_get_temp_dir(), 'PDF');
+            // En lugar de usar sys_get_temp_dir(), especifica la ruta relativa
+            $outputFilesBase = __DIR__ . '/../tmps/' . 'PDF';
+
 
             $pdfExtractor = new PDFExtractorModel();
             $outputPaths = $pdfExtractor->extraerPaginasIndividuales($pdfArchivo, $paginas, $outputFilesBase);
@@ -85,4 +88,3 @@ class PDFExtractorController {
 $controller = new PDFExtractorController();
 $resultado = ($_POST["downloadMode"] === 'multiple') ? $controller->procesarSolicitudIndividual() : $controller->procesarSolicitud();
 echo "Resultado: " . $resultado;
-?>
