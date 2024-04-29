@@ -21,7 +21,7 @@ class PdfOptimizerController {
         if (isset($_POST['submit'])) {
             if (!empty($_FILES['pdfFile']['tmp_name'])) {
                 $inputFile = $_FILES['pdfFile']['tmp_name'];
-                $outputFile = tempnam(sys_get_temp_dir(), 'optimized_pdf');
+                $outputFile = __DIR__ . '/../tmps/' . uniqid('optimized_pdf');
 
                 try {
                     $success = $this->optimizePdf($inputFile, $outputFile);
