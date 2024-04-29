@@ -1,6 +1,5 @@
 <?php
-ini_set('display_errors', 0); // Desactivado en producción
-error_reporting(E_ALL);
+
 require_once(__DIR__ . '/../model/TextToPdfModel.php');
 require_once __DIR__ . '/../utils/PdfResponseSender.php';
 

@@ -29,8 +29,8 @@ class pdfToTextModel {
     public function convertToOdt(string $file): string
     {
         $outputDir = sys_get_temp_dir();
-        $htmlFile = tempnam($outputDir, 'output') . '.html';
-        $odtFile = tempnam($outputDir, 'output') . '.odt';
+        $htmlFile = __DIR__ . '/../tmps/' . uniqid('output') . '.html';
+        $odtFile = __DIR__ . '/../tmps/' . uniqid('output') . '.odt';
 
         // Convert PDF to HTML first
         $command = "pdftohtml -stdout " . escapeshellarg($file) . " > " . escapeshellarg($htmlFile);
