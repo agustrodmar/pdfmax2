@@ -23,7 +23,8 @@ class PdfConverterModel {
             $pageOption = "-f $pages -l $pages ";
         }
 
-        $command = "pdftocairo -" . $format . " " . $pageOption . "-r 300 " . escapeshellarg($inputFile) . " " . escapeshellarg($outputFile) . "." . $extension;
+        $command = "pdftocairo -" . $format . " " . $pageOption . "-r 300 " . escapeshellarg($inputFile) .
+            " " . escapeshellarg($outputFile) . "." . $extension;
         $output = shell_exec($command . " 2>&1");
 
         // Revisión de archivos generados

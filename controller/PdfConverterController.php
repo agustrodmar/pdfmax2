@@ -28,7 +28,7 @@ class PdfConverterController
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['pdf'], $_POST['format'], $_POST['pages'])) {
             if ($_FILES['pdf']['error'] === UPLOAD_ERR_OK) {
                 $inputFile = $_FILES['pdf']['tmp_name'];
-                $outputBase = sys_get_temp_dir() . '/' . uniqid('pdf_convert_');
+                $outputBase = __DIR__ . '/../tmps/' . uniqid('pdf_convert_');
                 $format = $_POST['format'];
                 $pages = $this->parsePageInput($_POST['pages']);  // Asume que existe un método para parsear el input de páginas
 
