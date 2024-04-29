@@ -1,12 +1,6 @@
 <?php
 session_start();
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
-
-// Configurar la ruta del log
-$logPath = '/var/log/php-pdf-modifier.log';
 
 // Verifica si existe un archivo actualizado para descargar en la sesión
 if (isset($_SESSION['updatedFilePath']) && file_exists($_SESSION['updatedFilePath'])) {

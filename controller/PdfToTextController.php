@@ -2,6 +2,9 @@
 
 require_once(__DIR__ . '/../model/PdfToTextModel.php');
 
+/**
+ * Clase que se encarga de convertir un archivo PDF a texto o a formato ODT.
+ */
 class PdfToTextController {
     private PdfToTextModel $model;
 
@@ -10,6 +13,7 @@ class PdfToTextController {
     }
 
     /**
+     * Esta función se encarga de convertir el archivo PDF a texto o a formato ODT.
      * @throws Exception
      */
     public function convert(): void
@@ -37,6 +41,7 @@ class PdfToTextController {
             header('Content-Length: ' . strlen($output));
             echo $output;
             exit;
+
         } else {
             echo "Error al convertir el archivo.";
         }
