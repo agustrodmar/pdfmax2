@@ -1,8 +1,8 @@
 <?php
 
 namespace Utils;
-
 use ZipArchive;
+
 
 /**
  * Clase para manejar la creación de archivos ZIP.
@@ -21,7 +21,6 @@ class Zipper
         $zipFilename = $outputFilesBase . '.zip';
         $extension = $format === 'jpeg' ? 'jpg' : $format; // para manejar correctamente JPEG
 
-        // patrón glob para incluir correctamente SVG que no tiene múltiples archivos con sufijos
         $files = glob($outputFilesBase . '*.' . $extension);
         if (!$files) {
             exit("No se encontraron archivos generados.");
@@ -38,4 +37,31 @@ class Zipper
         $zip->close();
         return $zipFilename;
     }
+
+    /**
+     * Crea un archivo ZIP específicamente para los archivos PDF individuales.
+     * @param array $outputPaths
+     * @return string Ruta del archivo ZIP creado.
+     */
+    public function createPdfZip(array $outputPaths): string {
+        $zip = new ZipArchive();
+        $zipFilename = sys_get_temp_dir() . '/PDFs.zip';
+
+        if ($zip->open($zipFilename, ZipArchive::CREATE) !== TRUE) {
+            error_log("Cannot open <$zipFilename>");
+            exit("Cannot open <$zipFilename>\n");
+        }
+
+        foreach ($outputPaths as $filePath) {
+            if ($zip->addFile($filePath, basename($filePath))) {
+                error_log("Archivo añadido al ZIP: $filePath");
+            } else {
+                error_log("Error al añadir archivo al ZIP: $filePath");
+            }
+        }
+
+        $zip->close();
+        return $zipFilename;
+    }
+
 }

@@ -11,6 +11,7 @@ use Utils\Zipper;
 class PdfConverterController
 {
     private PdfConverterModel $model;
+    private Zipper $zipper;
 
     public function __construct()
     {

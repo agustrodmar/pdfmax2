@@ -1,28 +1,24 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extractor de páginas de PDF</title>
+    <title>Extractor de PDF</title>
 </head>
 <body>
-<header>
-    <h1>Extractor de páginas de PDF</h1>
-</header>
-<main>
-    <section>
-        <h2>Seleccione un archivo PDF y especifique las páginas que desea extraer:</h2>
-        <form action="../controller/PdfExtractorController.php" method="post" enctype="multipart/form-data">
-            <label for="pdfArchivo">Archivo PDF:</label>
-            <input type="file" name="pdfArchivo" id="pdfArchivo" required>
-            <label for="paginas">Páginas a extraer (separadas por comas):</label>
-            <input type="text" name="paginas" id="paginas" placeholder="Ej: 1, 4, 8, 9" required>
-            <button type="submit">Extraer páginas</button>
-        </form>
-    </section>
-</main>
-<footer>
-    <p>© <?php echo date("Y"); ?> Extractor de páginas de PDF</p>
-</footer>
+<h1>Extractor de Páginas de PDF</h1>
+<form action="../controller/PdfExtractorController.php" method="post" enctype="multipart/form-data">
+    <label for="pdfArchivo">Selecciona un archivo PDF:</label><br>
+    <input type="file" id="pdfArchivo" name="pdfArchivo" accept=".pdf"><br><br>
+
+    <label for="paginas">Especifica las páginas (ej. 1,3-5,7):</label><br>
+    <input type="text" id="paginas" name="paginas"><br><br>
+
+    <label>Elige el modo de descarga:</label><br>
+    <input type="radio" id="single" name="downloadMode" value="single" checked>
+    <label for="single">Un solo documento PDF</label><br>
+    <input type="radio" id="multiple" name="downloadMode" value="multiple">
+    <label for="multiple">Documentos PDF separados (ZIP)</label><br><br>
+
+    <input type="submit" value="Extraer y Descargar">
+</form>
 </body>
 </html>

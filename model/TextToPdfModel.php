@@ -39,7 +39,7 @@ class TextToPdfModel {
             . escapeshellarg($outputDir) . " " . escapeshellarg($file);
 
         exec($command, $output, $returnVar);
-        sleep(1); // Añado el sleep para asegurar que el sistema de archivos se actualiza.
+        sleep(1); // un sleep para asegurar que el sistema de archivos se actualiza.
 
         if ($returnVar !== 0 || !file_exists($outputFile) || filesize($outputFile) === 0) {
             throw new Exception("La conversión inicial falló. LibreOffice no pudo convertir el archivo.");
