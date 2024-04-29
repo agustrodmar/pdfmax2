@@ -40,7 +40,7 @@ if (isset($_SESSION['metadata'])) {
         <input type="submit" name="submit" value="Guardar Cambios">
     </form>
     <?php if (isset($_SESSION['downloadPath'])): ?>
-        <a href="../utils/downloadPhp.php">Descargar PDF Actualizado</a>
+        <a href="../utils/downloadMetadaData.php">Descargar PDF Actualizado</a>
     <?php endif; ?>
 <?php endif; ?>
 </body>

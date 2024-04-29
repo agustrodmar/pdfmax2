@@ -28,22 +28,22 @@ class pdfToTextModel {
      */
     public function convertToOdt(string $file): string
     {
-        $outputDir = sys_get_temp_dir();
+        $outputDir = __DIR__ . '/../tmps/' ;
         $htmlFile = __DIR__ . '/../tmps/' . uniqid('output') . '.html';
         $odtFile = __DIR__ . '/../tmps/' . uniqid('output') . '.odt';
 
-        // Convert PDF to HTML first
+        // pdftohtml para ir de pdf a html
         $command = "pdftohtml -stdout " . escapeshellarg($file) . " > " . escapeshellarg($htmlFile);
         shell_exec($command);
 
-        // Then convert HTML to ODT with Pandoc
+        // Pandoc para ir de html a odt.
         $command = "pandoc -s " . escapeshellarg($htmlFile) . " -o " . escapeshellarg($odtFile);
         shell_exec($command);
 
         if (!file_exists($odtFile) || filesize($odtFile) === 0) {
             throw new Exception("Error generating ODT file.");
         }
-
+        
         $odtContent = file_get_contents($odtFile);
         unlink($htmlFile);
         unlink($odtFile);

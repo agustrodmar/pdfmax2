@@ -39,6 +39,9 @@ class PdfConverterController
 
                 $zipFile = $this->zipper->createZip($outputBase, $format);
 
+                // Llamo a borrar los archivos temporales.
+                $this->deleteFiles($outputBase . '*');
+
                 // Los encabezados HTTP y la respuesta
                 header('Content-Type: application/zip');
                 header('Content-Disposition: attachment; filename="converted_files.zip"');
@@ -76,6 +79,20 @@ class PdfConverterController
             }
         }
         return $pages;
+    }
+
+
+    /**
+     * Este método elimina los archivos temporales generados después de la creación del Zip.
+     *
+     * @param $pattern; el patrón de búsqueda de los nombres de los archivos que elimina.
+     * @return void
+     */
+    private function deleteFiles($pattern): void
+    {
+        foreach (glob($pattern) as $file) {
+            unlink($file);
+        }
     }
 }
 

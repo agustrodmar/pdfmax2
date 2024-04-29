@@ -1,4 +1,6 @@
+
 <?php
+
 session_start();
 
 
@@ -35,4 +37,6 @@ if (isset($_SESSION['updatedFilePath']) && file_exists($_SESSION['updatedFilePat
     // Log de error si el archivo no se encuentra
     error_log("Archivo no encontrado para descargar: " . $_SESSION['updatedFilePath'], 3, $logPath);
     echo "Lo siento, el archivo no está disponible para descargar.";
+
+
 }

@@ -66,6 +66,7 @@ class PdfOptimizerController {
         header('Content-Disposition: attachment; filename="' . basename($filePath) . '"');
         header('Content-Type: application/pdf');
         readfile($filePath);
+        unlink($filePath);
         exit;
     }
 }
