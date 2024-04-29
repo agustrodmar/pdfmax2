@@ -31,7 +31,7 @@ class TextToPdfModel {
             throw new Exception("El archivo especificado no existe o no se puede leer.");
         }
 
-        $outputDir = sys_get_temp_dir();
+        $outputDir = __DIR__ . '/../tmps/';
         $outputFileName = basename($file, '.' . pathinfo($file, PATHINFO_EXTENSION)) . ".pdf";
         $outputFile = $outputDir . '/' . $outputFileName;
 
@@ -46,7 +46,7 @@ class TextToPdfModel {
         }
 
         // Ruta del archivo PDF final que contendrá solo las páginas seleccionadas
-        $finalOutputFile = $outputDir . '/' . 'final_' . $outputFileName;
+        $finalOutputFile = $outputDir . '/' . 'final_' . basename($file, '.' . pathinfo($file, PATHINFO_EXTENSION)) . ".pdf";
 
         // Comando para extraer rangos de páginas usando pdftk
         $pdftkCommand = "pdftk " . escapeshellarg($outputFile) . " cat " . escapeshellarg($pages) . " output " . escapeshellarg($finalOutputFile);
