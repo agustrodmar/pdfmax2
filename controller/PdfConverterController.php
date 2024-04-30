@@ -30,7 +30,7 @@ class PdfConverterController
                 $inputFile = $_FILES['pdf']['tmp_name'];
                 $outputBase = __DIR__ . '/../tmps/' . uniqid('pdf_convert_');
                 $format = $_POST['format'];
-                $pages = $this->parsePageInput($_POST['pages']);  // Asume que existe un método para parsear el input de páginas
+                $pages = $this->parsePageInput($_POST['pages']);
 
                 foreach ($pages as $page) {
                     $outputFile = $outputBase . "_page_$page";
@@ -39,17 +39,16 @@ class PdfConverterController
 
                 $zipFile = $this->zipper->createZip($outputBase, $format);
 
-                // Llamo a borrar los archivos temporales.
-                $this->deleteFiles($outputBase . '*');
-
-                // Los encabezados HTTP y la respuesta
                 header('Content-Type: application/zip');
                 header('Content-Disposition: attachment; filename="converted_files.zip"');
                 header('Content-Length: ' . filesize($zipFile));
                 ob_clean();
                 flush();
                 readfile($zipFile);
+
+                $this->deleteFiles($outputBase . '*');
                 unlink($zipFile);
+
                 exit;
             } else {
                 echo "Error al cargar el archivo: " . $_FILES['pdf']['error'];
@@ -81,7 +80,6 @@ class PdfConverterController
         return $pages;
     }
 
-
     /**
      * Este método elimina los archivos temporales generados después de la creación del Zip.
      *
@@ -101,4 +99,5 @@ $controller = new PdfConverterController();
 try {
     $controller->convert();
 } catch (Exception $e) {
+    error_log("Excepción capturada: " . $e->getMessage());
 }

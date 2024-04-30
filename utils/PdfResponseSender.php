@@ -4,7 +4,7 @@ use JetBrains\PhpStorm\NoReturn;
 
 /**
  * Trait para enviar archivos PDF al cliente como descarga
- * para las clases odtToPdf y docxToPdf
+ * para la clases de TextToPdf.
  */
 trait PdfResponseSender {
     /**

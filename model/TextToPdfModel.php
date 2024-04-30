@@ -56,7 +56,7 @@ class TextToPdfModel {
             throw new Exception("Error al extraer el rango de páginas con pdftk.");
         }
 
-        unlink($outputFile); // Eliminar el PDF completo generado inicialmente.
+        unlink($outputFile);
 
         return $finalOutputFile;
     }
