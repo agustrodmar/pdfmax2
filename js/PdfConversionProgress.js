@@ -14,7 +14,11 @@ function updateProgress() {
             return response.json();
         })
         .then(data => {
-            var progress = (data.currentStep / data.totalSteps) * 100;
+            var progress = 0;
+            if (data.totalSteps > 0) {
+                progress = (data.currentStep / data.totalSteps) * 100;
+            }
+
             progressText.innerText = 'Progreso: ' + progress.toFixed(2) + '%';
             progressBar.value = progress;
 

@@ -15,6 +15,13 @@ class ProgressTracker {
         $this->writeProgressToFile();
     }
 
+    public function reset(): void
+    {
+        $this->totalSteps = 0;
+        $this->currentStep = 0;
+        $this->writeProgressToFile();
+    }
+
     private function writeProgressToFile(): void
     {
         $progress = [

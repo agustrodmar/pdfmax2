@@ -10,6 +10,7 @@ require_once __DIR__ . '/../utils/ProgressTracker.php';
 use Utils\Zipper;
 
 // TODO: Cuando el proceso falla, no se está unlinkeando los ficheros generando.
+// TODO: Crear un script que limpie el servidor de archivos temporales que no se estén usando.
 
 
 /**
@@ -42,6 +43,9 @@ class PdfConverterController
                 $format = $_POST['format'];
                 $pages = $this->parsePageInput($_POST['pages']);
 
+                // Restablece el archivo progress.json
+                $this->tracker->reset();
+
                 // Establece el número total de pasos
                 $this->tracker->setTotalSteps(count($pages));
 
@@ -55,10 +59,8 @@ class PdfConverterController
                 $zipFile = $this->zipper->createZip($outputBase, $format);
                 error_log("Archivo ZIP creado: $zipFile"); // Log de seguimiento
 
-                // Guarda el nombre del archivo zip en la sesión
                 $_SESSION['zipFile'] = $zipFile;
 
-                // No envíes el archivo aquí, solo devuelve un éxito
                 echo json_encode(['success' => true]);
                 exit;
             } else {
@@ -84,7 +86,7 @@ class PdfConverterController
             flush();
             readfile($zipFile);
 
-            sleep(10);
+            sleep(5);
 
             // Elimina el archivo ZIP
             unlink($zipFile);
