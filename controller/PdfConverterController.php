@@ -84,10 +84,20 @@ class PdfConverterController
             flush();
             readfile($zipFile);
 
-            // Espera 5 segundos antes de eliminar el archivo
-            sleep(25);
+            sleep(10);
 
+            // Elimina el archivo ZIP
             unlink($zipFile);
+
+            // Obtiene todos los archivos PNG en el directorio tmps
+            $pngFiles = glob(__DIR__ . '/../tmps/*.png');
+
+            // Elimina cada archivo PNG
+            foreach ($pngFiles as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                }
+            }
         } else {
             echo "Archivo no encontrado.";
         }

@@ -6,7 +6,6 @@ var progressBar = document.getElementById('progressBar');
 
 // Función para actualizar el progreso
 function updateProgress() {
-    // solicitud al archivo JSON
     fetch(jsonUrl)
         .then(response => {
             if (!response.ok) {
@@ -15,17 +14,15 @@ function updateProgress() {
             return response.json();
         })
         .then(data => {
-            // Calcula el porcentaje de progreso
             var progress = (data.currentStep / data.totalSteps) * 100;
-
-            // Actualiza los elementos de progreso
             progressText.innerText = 'Progreso: ' + progress.toFixed(2) + '%';
             progressBar.value = progress;
 
-            // Verifica si la conversión ha terminado
             if (progress >= 100) {
-                // Muestra el enlace de descarga
-                document.getElementById('downloadLink').style.display = 'block';
+                // Espera 5 segundos antes de mostrar el enlace de descarga
+                setTimeout(function() {
+                    document.getElementById('downloadLink').style.display = 'block';
+                }, 5000);
             }
         })
         .catch(error => {
