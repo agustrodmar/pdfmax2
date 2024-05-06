@@ -46,7 +46,7 @@ class pdfToTextModel
         shell_exec($command);
 
         // Pandoc para ir de html a odt.
-        $command = "pandoc -s " . escapeshellarg($htmlFile) . " -o " . escapeshellarg($odtFile);
+        $command = "pandoc -js " . escapeshellarg($htmlFile) . " -o " . escapeshellarg($odtFile);
         shell_exec($command);
 
         if (!file_exists($odtFile) || filesize($odtFile) === 0) {
@@ -89,7 +89,7 @@ class pdfToTextModel
         error_log("Archivo HTML generado: " . $htmlFile);
 
         // Pandoc para ir de html a odt.
-        $command = "pandoc -s " . escapeshellarg($htmlFile) . " -o " . escapeshellarg($odtFile);
+        $command = "pandoc -js " . escapeshellarg($htmlFile) . " -o " . escapeshellarg($odtFile);
         shell_exec($command);
         error_log("Archivo ODT generado: " . $odtFile);
 
