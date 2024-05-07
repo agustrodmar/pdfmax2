@@ -1,5 +1,7 @@
-var jsonUrl = '/controller/progress.json';
 
+
+var operationId = document.body.getAttribute('data-operation-id');
+var jsonUrl = '../tmps/' + operationId + '_progress.json';
 // Elementos de progreso
 var progressText = document.getElementById('progressText');
 var progressBar = document.getElementById('progressBar');
@@ -23,7 +25,6 @@ function updateProgress() {
             progressBar.value = progress;
 
             if (progress >= 100) {
-                // Espera 5 segundos antes de mostrar el enlace de descarga
                 setTimeout(function() {
                     document.getElementById('downloadLink').style.display = 'block';
                 }, 5000);
@@ -31,6 +32,10 @@ function updateProgress() {
         })
         .catch(error => {
             console.error('Error:', error);
+            // Si el archivo JSON no se encuentra, simplemente ignora el error y sigue intentando
+            if (error.message === 'No se pudo encontrar el archivo JSON') {
+                console.log('El archivo de progreso aún no se ha creado. Seguir intentando...');
+            }
         });
 }
 // Función para enviar la solicitud de conversión de PDF
@@ -43,8 +48,10 @@ function convertPdf(event) {
     request.open('POST', '../controller/PdfConverterController.php');
     request.send(formData);
 
-    // Actualiza el progreso cada segundo
-    setInterval(updateProgress, 1000);
+    // Espera 2 segundos antes de comenzar a actualizar el progreso
+    setTimeout(function() {
+        setInterval(updateProgress, 1000);
+    }, 2000);
 }
 
 // Añade el evento submit al formulario

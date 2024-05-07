@@ -6,6 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
 require_once __DIR__ . '/../model/PdfConverterModel.php';
 require_once __DIR__ . '/../utils/Zipper.php';
 require_once __DIR__ . '/../utils/ProgressTracker.php';
+require_once __DIR__ . '/../view/PdfConverterView.php';
 
 use Utils\Zipper;
 
@@ -43,11 +44,17 @@ class PdfConverterController
                 $format = $_POST['format'];
                 $pages = $this->parsePageInput($_POST['pages']);
 
-                // Restablece el archivo progress.json
-                $this->tracker->reset();
+                // Calcula el total de pasos basado en el número de páginas a convertir
+                $totalSteps = count($pages);
+                $operationId = uniqid('pdf_convert_');
+                $_SESSION['operationId'] = $operationId;
+                $jsonUrl = '../tmps/' . $operationId . '_progress.json';
 
-                // Establece el número total de pasos
-                $this->tracker->setTotalSteps(count($pages));
+                // Inicializa el archivo JSON con el total de pasos y el paso actual
+                $progressData = ['totalSteps' => $totalSteps, 'currentStep' => 0];
+                file_put_contents($jsonUrl, json_encode($progressData));
+
+                $this->tracker->setOperationId($operationId);
 
                 foreach ($pages as $page) {
                     $outputFile = $outputBase . "_page_$page";
@@ -100,6 +107,7 @@ class PdfConverterController
                     unlink($file);
                 }
             }
+            unlink($this->tracker->getOperationId() . '_progress.json');
         } else {
             echo "Archivo no encontrado.";
         }
@@ -152,3 +160,5 @@ try {
 } catch (Exception $e) {
     error_log("Excepción capturada: " . $e->getMessage());
 }
+
+

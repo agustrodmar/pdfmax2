@@ -4,6 +4,19 @@ class ProgressTracker {
     private int $totalSteps = 0;
     private int $currentStep = 0;
 
+    private string $operationId;
+
+
+    public function setOperationId($operationId): void
+    {
+        $this->operationId = $operationId;
+    }
+
+    public function getOperationId(): string
+    {
+        return $this->operationId;
+    }
+
     public function setTotalSteps($totalSteps): void
     {
         $this->totalSteps = $totalSteps;
@@ -28,6 +41,7 @@ class ProgressTracker {
             'totalSteps' => $this->totalSteps,
             'currentStep' => $this->currentStep
         ];
-        file_put_contents('progress.json', json_encode($progress));
+        $filePath = __DIR__ . '/../tmps/' . $this->operationId . '_progress.json';
+        file_put_contents($filePath, json_encode($progress));
     }
 }

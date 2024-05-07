@@ -3,7 +3,8 @@
 <head>
     <title>Conversor de PDF</title>
 </head>
-<body>
+<body data-operation-id="<?php echo isset($_SESSION['operationId']) ? htmlspecialchars($_SESSION['operationId'], ENT_QUOTES, 'UTF-8') : 'undefined'; ?>">
+
 <h1>Conversor de PDF a Imagen</h1>
 <form action="../controller/PdfConverterController.php" method="post" enctype="multipart/form-data">
     <label for="pdf">Selecciona un archivo PDF:</label><br>
@@ -18,6 +19,11 @@
 
     <label for="pages">Especifica las páginas (ej. 1,3-5,7):</label><br>
     <input type="text" id="pages" name="pages"><br><br>
+
+
+    <input type="hidden" id="jsonUrl" name="jsonUrl" value="<?php echo $jsonUrl; ?>">
+    <input type="hidden" id="operationId" name="operationId" value="<?php echo $operationId; ?>">
+
     <input type="submit" value="Convertir">
 
     <p id="progressText"></p>
@@ -31,3 +37,4 @@
 </form>
 </body>
 </html>
+
