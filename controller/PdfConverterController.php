@@ -6,12 +6,10 @@ if (session_status() == PHP_SESSION_NONE) {
 require_once __DIR__ . '/../model/PdfConverterModel.php';
 require_once __DIR__ . '/../utils/Zipper.php';
 require_once __DIR__ . '/../utils/ProgressTracker.php';
-require_once __DIR__ . '/../view/PdfConverterView.php';
 
 use Utils\Zipper;
 
 // TODO: Cuando el proceso falla, no se está unlinkeando los ficheros generando.
-// TODO: Crear un script que limpie el servidor de archivos temporales que no se estén usando.
 
 
 /**
@@ -39,22 +37,15 @@ class PdfConverterController
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['pdf'], $_POST['format'], $_POST['pages'])) {
             if ($_FILES['pdf']['error'] === UPLOAD_ERR_OK) {
+                // Restablece el archivo progress.json al inicio de una nueva operación de conversión
+                $this->tracker->reset();
                 $inputFile = $_FILES['pdf']['tmp_name'];
                 $outputBase = __DIR__ . '/../tmps/' . uniqid('pdf_convert_');
                 $format = $_POST['format'];
                 $pages = $this->parsePageInput($_POST['pages']);
 
-                // Calcula el total de pasos basado en el número de páginas a convertir
-                $totalSteps = count($pages);
-                $operationId = uniqid('pdf_convert_');
-                $_SESSION['operationId'] = $operationId;
-                $jsonUrl = '../tmps/' . $operationId . '_progress.json';
-
-                // Inicializa el archivo JSON con el total de pasos y el paso actual
-                $progressData = ['totalSteps' => $totalSteps, 'currentStep' => 0];
-                file_put_contents($jsonUrl, json_encode($progressData));
-
-                $this->tracker->setOperationId($operationId);
+                // Establece el número total de pasos
+                $this->tracker->setTotalSteps(count($pages));
 
                 foreach ($pages as $page) {
                     $outputFile = $outputBase . "_page_$page";
@@ -66,8 +57,10 @@ class PdfConverterController
                 $zipFile = $this->zipper->createZip($outputBase, $format);
                 error_log("Archivo ZIP creado: $zipFile"); // Log de seguimiento
 
+                // Guarda el nombre del archivo zip en la sesión
                 $_SESSION['zipFile'] = $zipFile;
 
+                // No envíes el archivo aquí, solo devuelve un éxito
                 echo json_encode(['success' => true]);
                 exit;
             } else {
@@ -93,21 +86,22 @@ class PdfConverterController
             flush();
             readfile($zipFile);
 
-            sleep(5);
+            sleep(10);
 
             // Elimina el archivo ZIP
             unlink($zipFile);
 
             // Obtiene todos los archivos PNG en el directorio tmps
             $pngFiles = glob(__DIR__ . '/../tmps/*.png');
+            $jpegFiles = glob(__DIR__ . '/../tmps/*.jpeg');
+            $svgFiles = glob(__DIR__ . '/../tmps/*.svg');
 
-            // Elimina cada archivo PNG
-            foreach ($pngFiles as $file) {
+            // Elimina cada archivo PNG, JPEG y SVG
+            foreach (array_merge($pngFiles, $jpegFiles, $svgFiles) as $file) {
                 if (is_file($file)) {
                     unlink($file);
                 }
             }
-            unlink($this->tracker->getOperationId() . '_progress.json');
         } else {
             echo "Archivo no encontrado.";
         }
@@ -160,5 +154,3 @@ try {
 } catch (Exception $e) {
     error_log("Excepción capturada: " . $e->getMessage());
 }
-
-
