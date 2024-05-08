@@ -20,15 +20,22 @@ class PdfToTextController {
     {
         $file = $_FILES['file']['tmp_name'];
         $format = $_POST['format'];
+        $pages = isset($_POST['pages']) ? explode(',', $_POST['pages']) : null;
 
         if ($format == 'txt') {
             $output = $this->model->convertToText($file);
             $filename = 'output.txt';
             $contentType = 'text/plain';
         } else if ($format == 'odt') {
-            $output = $this->model->convertToOdt($file);
-            $filename = 'output.odt';
-            $contentType = 'application/vnd.oasis.opendocument.text';
+            if ($pages) {
+                $output = $this->model->convertPagesToOdt($file, $pages);
+                $filename = 'output.zip';
+                $contentType = 'application/zip';
+            } else {
+                $output = $this->model->convertToOdt($file);
+                $filename = 'output.odt';
+                $contentType = 'application/vnd.oasis.opendocument.text';
+            }
         }
 
         if ($output) {

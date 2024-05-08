@@ -37,6 +37,3 @@ class PdfConverterModel {
         return $outputFile . '.' . $extension;
     }
 }
-
-
-

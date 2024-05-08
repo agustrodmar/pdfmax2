@@ -21,7 +21,6 @@ class PdfConverterController
     private Zipper $zipper;
     private ProgressTracker $tracker;
 
-
     public function __construct()
     {
         $this->model = new PdfConverterModel();
@@ -37,20 +36,18 @@ class PdfConverterController
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['pdf'], $_POST['format'], $_POST['pages'])) {
             if ($_FILES['pdf']['error'] === UPLOAD_ERR_OK) {
-                // Restablece el archivo progress.json al inicio de una nueva operación de conversión
-                $this->tracker->reset();
                 $inputFile = $_FILES['pdf']['tmp_name'];
                 $outputBase = __DIR__ . '/../tmps/' . uniqid('pdf_convert_');
                 $format = $_POST['format'];
                 $pages = $this->parsePageInput($_POST['pages']);
 
-                // Establece el número total de pasos
+                $this->tracker->reset(); // Reinicia el progreso antes de comenzar la conversión
                 $this->tracker->setTotalSteps(count($pages));
 
                 foreach ($pages as $page) {
                     $outputFile = $outputBase . "_page_$page";
                     $this->model->convertPdf($inputFile, $outputFile, $format, $page);
-                    $this->tracker->incrementStep(); // Incremento tracker
+                    $this->tracker->incrementStep(); // Incremento del tracker
                     error_log("Página $page convertida."); // Log de seguimiento
                 }
 
@@ -93,11 +90,9 @@ class PdfConverterController
 
             // Obtiene todos los archivos PNG en el directorio tmps
             $pngFiles = glob(__DIR__ . '/../tmps/*.png');
-            $jpegFiles = glob(__DIR__ . '/../tmps/*.jpeg');
-            $svgFiles = glob(__DIR__ . '/../tmps/*.svg');
 
-            // Elimina cada archivo PNG, JPEG y SVG
-            foreach (array_merge($pngFiles, $jpegFiles, $svgFiles) as $file) {
+            // Elimina cada archivo PNG
+            foreach ($pngFiles as $file) {
                 if (is_file($file)) {
                     unlink($file);
                 }
