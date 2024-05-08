@@ -21,7 +21,6 @@ class PdfConverterController
     private Zipper $zipper;
     private ProgressTracker $tracker;
 
-
     public function __construct()
     {
         $this->model = new PdfConverterModel();
@@ -42,13 +41,13 @@ class PdfConverterController
                 $format = $_POST['format'];
                 $pages = $this->parsePageInput($_POST['pages']);
 
-                // Establece el número total de pasos
+                $this->tracker->reset(); // Reinicia el progreso antes de comenzar la conversión
                 $this->tracker->setTotalSteps(count($pages));
 
                 foreach ($pages as $page) {
                     $outputFile = $outputBase . "_page_$page";
                     $this->model->convertPdf($inputFile, $outputFile, $format, $page);
-                    $this->tracker->incrementStep(); // Incremento tracker
+                    $this->tracker->incrementStep(); // Incremento del tracker
                     error_log("Página $page convertida."); // Log de seguimiento
                 }
 
