@@ -9,12 +9,6 @@ require_once __DIR__ . '/../utils/ProgressTracker.php';
 
 use Utils\Zipper;
 
-// TODO: Cuando el proceso falla, no se está unlinkeando los ficheros generando.
-
-
-/**
- * Controlador para manejar la conversión de archivos PDF a diferentes formatos de imagen.
- */
 class PdfConverterController
 {
     private PdfConverterModel $model;
@@ -28,90 +22,65 @@ class PdfConverterController
         $this->tracker = new ProgressTracker();
     }
 
-    /**
-     * Procesa la solicitud de conversión de PDF, valida la entrada, y prepara una respuesta de descarga.
-     * @throws Exception Si la solicitud no es válida o falla la carga del archivo.
-     */
     public function convert(): void
     {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['pdf'], $_POST['format'], $_POST['pages'])) {
-            if ($_FILES['pdf']['error'] === UPLOAD_ERR_OK) {
-                $inputFile = $_FILES['pdf']['tmp_name'];
-                $outputBase = __DIR__ . '/../tmps/' . uniqid('pdf_convert_');
-                $format = $_POST['format'];
-                $pages = $this->parsePageInput($_POST['pages']);
+        $uniqueId = $_POST['uniqueId'] ?? uniqid('pdf_convert_', true);  // Genera uniqueId si no se provee
+        $_SESSION[$uniqueId . '_zipFile'] = __DIR__ . "/../tmps/{$uniqueId}.zip";
+        error_log("Inicio de conversión: uniqueId = $uniqueId");
 
-                $this->tracker->reset(); // Reinicia el progreso antes de comenzar la conversión
-                $this->tracker->setTotalSteps(count($pages));
+        if ($_FILES['pdf']['error'] === UPLOAD_ERR_OK) {
+            $inputFile = $_FILES['pdf']['tmp_name'];
+            $outputBase = __DIR__ . '/../tmps/' . $uniqueId;
+            $format = $_POST['format'];
+            $pages = $this->parsePageInput($_POST['pages']);
 
-                foreach ($pages as $page) {
-                    $outputFile = $outputBase . "_page_$page";
-                    $this->model->convertPdf($inputFile, $outputFile, $format, $page);
-                    $this->tracker->incrementStep(); // Incremento del tracker
-                    error_log("Página $page convertida."); // Log de seguimiento
-                }
+            $this->tracker->setTotalSteps(count($pages), $uniqueId);
+            error_log("Total de pasos configurados: " . count($pages));
 
-                $zipFile = $this->zipper->createZip($outputBase, $format);
-                error_log("Archivo ZIP creado: $zipFile"); // Log de seguimiento
-
-                // Guarda el nombre del archivo zip en la sesión
-                $_SESSION['zipFile'] = $zipFile;
-
-                // No envíes el archivo aquí, solo devuelve un éxito
-                echo json_encode(['success' => true]);
-                exit;
-            } else {
-                echo "Error al cargar el archivo: " . $_FILES['pdf']['error'];
-                error_log("Error al cargar el archivo: " . $_FILES['pdf']['error']); // Log de seguimiento
+            foreach ($pages as $page) {
+                $outputFile = "{$outputBase}_page_{$page}";
+                $this->model->convertPdf($inputFile, $outputFile, $format, $page);
+                $this->tracker->incrementStep($uniqueId);
+                error_log("Página $page convertida.");
             }
+
+            $zipFile = $this->zipper->createZip($outputBase, $format);
+            $_SESSION[$uniqueId . '_zipFile'] = $zipFile;
+            error_log("Archivo ZIP creado: $zipFile");
+
+            echo json_encode(['success' => true]);
         } else {
-            echo "Método no soportado o datos faltantes.";
-            error_log("Método no soportado o datos faltantes."); // Log de seguimiento
+            error_log("Error al cargar el archivo: " . $_FILES['pdf']['error']);
+            echo "Error al cargar el archivo: " . $_FILES['pdf']['error'];
         }
     }
 
+
     public function download(): void
     {
-        // Recupera el nombre del archivo zip de la sesión
-        $zipFile = $_SESSION['zipFile'];
+        $uniqueId = $_GET['uniqueId'] ?? '';
+        $zipFile = $_SESSION[$uniqueId . '_zipFile'] ?? null;
+        error_log("Intentando descargar el archivo: $zipFile");
 
-        if (file_exists($zipFile)) {
+        if ($zipFile && file_exists($zipFile)) {
             header('Content-Type: application/zip');
-            header('Content-Disposition: attachment; filename="converted_files.zip"');
+            header('Content-Disposition: attachment; filename="' . basename($zipFile) . '"');
             header('Content-Length: ' . filesize($zipFile));
             ob_clean();
             flush();
             readfile($zipFile);
-
-            sleep(10);
-
-            // Elimina el archivo ZIP
             unlink($zipFile);
-
-            // Obtiene todos los archivos PNG en el directorio tmps
-            $pngFiles = glob(__DIR__ . '/../tmps/*.png');
-
-            // Elimina cada archivo PNG
-            foreach ($pngFiles as $file) {
-                if (is_file($file)) {
-                    unlink($file);
-                }
-            }
+            $this->deleteFiles(__DIR__ . '/../tmps/' . $uniqueId . '*');
         } else {
+            error_log("Archivo no encontrado para uniqueId: $uniqueId, ruta esperada: $zipFile");
             echo "Archivo no encontrado.";
         }
     }
 
-    /**
-     * Analiza un string de entrada para extraer rangos de páginas individuales.
-     * @param string $input String con rangos de páginas.
-     * @return array Array de páginas individuales.
-     */
     private function parsePageInput(string $input): array
     {
         $pages = [];
-        $parts = explode(',', $input);
-        foreach ($parts as $part) {
+        foreach (explode(',', $input) as $part) {
             if (str_contains($part, '-')) {
                 list($start, $end) = explode('-', $part);
                 for ($i = $start; $i <= $end; $i++) {
@@ -124,12 +93,6 @@ class PdfConverterController
         return $pages;
     }
 
-    /**
-     * Este método elimina los archivos temporales generados después de la creación del Zip.
-     *
-     * @param $pattern; el patrón de búsqueda de los nombres de los archivos que elimina.
-     * @return void
-     */
     private function deleteFiles($pattern): void
     {
         foreach (glob($pattern) as $file) {
@@ -138,7 +101,6 @@ class PdfConverterController
     }
 }
 
-// Crear una instancia de la clase y llamar al método convert
 $controller = new PdfConverterController();
 try {
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {

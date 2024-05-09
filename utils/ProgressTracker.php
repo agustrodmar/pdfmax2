@@ -1,34 +1,30 @@
 <?php
 
 class ProgressTracker {
-    private int $totalSteps = 0;
-    private int $currentStep = 0;
-
-    public function setTotalSteps($totalSteps): void
+    /**
+     * Establece el número total de pasos en una sesión específica.
+     * @param int $totalSteps Total de pasos a configurar.
+     * @param string $uniqueId Identificador único para la sesión actual.
+     */
+    public function setTotalSteps(int $totalSteps, string $uniqueId): void
     {
-        $this->totalSteps = $totalSteps;
+        $_SESSION[$uniqueId . '_progress'] = ['totalSteps' => $totalSteps, 'currentStep' => 0];
     }
 
-    public function incrementStep(): void
+    public function incrementStep($uniqueId): void
     {
-        $this->currentStep++;
-        $this->writeProgressToFile();
+        if (isset($_SESSION[$uniqueId . '_progress'])) {
+            $_SESSION[$uniqueId . '_progress']['currentStep']++;
+        }
     }
 
-    public function reset(): void
+    /**
+     * Resetea los valores de progreso para una sesión dada.
+     * @param string $uniqueId Identificador único para la sesión actual.
+     */
+    public function reset(string $uniqueId): void
     {
-        $this->currentStep = 0;
-        $this->totalSteps = 0;  // Asegúrate de que también totalSteps sea restablecido si necesario
-        $this->writeProgressToFile();  // Asegura que el progreso reiniciado se guarde en el archivo
-    }
-
-    private function writeProgressToFile(): void
-    {
-        $progress = [
-            'totalSteps' => $this->totalSteps,
-            'currentStep' => $this->currentStep
-        ];
-        echo json_encode($progress);  // Temporal para depuración
-        file_put_contents('progress.json', json_encode($progress));
+        $_SESSION[$uniqueId . '_currentStep'] = 0;
+        $_SESSION[$uniqueId . '_totalSteps'] = 0;
     }
 }

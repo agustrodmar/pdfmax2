@@ -1,45 +1,67 @@
-var jsonUrl = '/controller/progress.json';
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const downloadLink = document.getElementById('downloadLink');
+    const jsonUrl = '/controller/progress.php'; // Endpoint para recuperar el progreso
 
-// Elementos de progreso
-var progressText = document.getElementById('progressText');
-var progressBar = document.getElementById('progressBar');
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault(); // Previene el comportamiento por defecto del formulario
+        const uniqueId = 'pdf_convert_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        const formData = new FormData(form);
+        formData.append('uniqueId', uniqueId);
 
-// Función para actualizar el progreso
-function updateProgress() {
-    var url = jsonUrl + '?t=' + new Date().getTime();  // Evita el caché del navegador
+        try {
+            const response = await fetch('../controller/PdfConverterController.php', {
+                method: 'POST',
+                body: formData
+            });
 
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            var progress = (data.currentStep / data.totalSteps) * 100;
-            progressText.innerText = 'Progreso: ' + progress.toFixed(2) + '%';
-            progressBar.value = progress;
-
-            if (progress >= 100) {
-                setTimeout(function() {
-                    document.getElementById('downloadLink').style.display = 'block';
-                }, 5000);
+            const result = await response.json();
+            if (response.ok && result.success) {
+                startProgressPolling(uniqueId); // Asegúrate de pasar el uniqueId aquí
+                updateDownloadLink(uniqueId); // Actualiza el enlace de descarga
+            } else {
+                throw new Error('Network response was not ok or conversion failed');
             }
-        })
-        .catch(error => console.error('Error:', error));
-}
-// Función para enviar la solicitud de conversión de PDF
-function convertPdf(event) {
-    event.preventDefault();
+        } catch (error) {
+            console.error('Error:', error);
+            progressText.innerText = 'Error al procesar la conversión.';
+        }
+    });
 
-    // Resetea la barra de progreso y el texto al iniciar
-    progressBar.value = 0;
-    progressText.innerText = 'Progreso: 0%';
+    function updateDownloadLink(uniqueId) {
+        const downloadUrl = `../controller/downloadScript.php?uniqueId=${encodeURIComponent(uniqueId)}`;
+        document.getElementById('downloadUrl').href = downloadUrl; // Asegúrate de que 'downloadUrl' es el ID correcto para tu enlace.
+        document.getElementById('downloadLink').style.display = 'block';
+    }
 
-    var formData = new FormData(event.target);
-    var request = new XMLHttpRequest();
+    function resetProgressUI() {
+        progressBar.value = 0;
+        progressText.innerText = 'Progreso: 0%';
+        downloadLink.style.display = 'none';
+    }
 
-    request.open('POST', '../controller/PdfConverterController.php');
-    request.send(formData);
+    function startProgressPolling(uniqueId) {
+        const intervalId = setInterval(async () => {
+            try {
+                const progressResponse = await fetch(`${jsonUrl}?uniqueId=${encodeURIComponent(uniqueId)}&t=${new Date().getTime()}`);
+                const progressData = await progressResponse.json();
 
-    // Actualiza el progreso cada segundo
-    setInterval(updateProgress, 1000);
-}
+                const progress = progressData.totalSteps > 0 ?
+                    (progressData.currentStep / progressData.totalSteps) * 100 : 0;
 
-// Añade el evento submit al formulario
-document.querySelector('form').addEventListener('submit', convertPdf);
+                progressBar.value = progress;
+                progressText.innerText = `Progreso: ${progress.toFixed(2)}%`;
+
+                if (progress >= 100) {
+                    clearInterval(intervalId);
+                    downloadLink.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error fetching progress:', error);
+                clearInterval(intervalId);
+            }
+        }, 1000);
+    }
+});
