@@ -1,5 +1,9 @@
 <?php
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
@@ -8,9 +12,6 @@ require_once __DIR__ . '/../utils/Zipper.php';
 require_once __DIR__ . '/../utils/ProgressTracker.php';
 
 use Utils\Zipper;
-
-// TODO: Cuando el proceso falla, no se está unlinkeando los ficheros generando.
-
 
 /**
  * Controlador para manejar la conversión de archivos PDF a diferentes formatos de imagen.
@@ -21,12 +22,12 @@ class PdfConverterController
     private Zipper $zipper;
     private ProgressTracker $tracker;
 
-
     public function __construct()
     {
         $this->model = new PdfConverterModel();
         $this->zipper = new Zipper();
         $this->tracker = new ProgressTracker();
+        error_log("PdfConverterController inicializado.");
     }
 
     /**
@@ -35,47 +36,49 @@ class PdfConverterController
      */
     public function convert(): void
     {
+        error_log("Iniciando conversión de PDF.");
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['pdf'], $_POST['format'], $_POST['pages'])) {
+            error_log("Método POST y parámetros recibidos.");
             if ($_FILES['pdf']['error'] === UPLOAD_ERR_OK) {
-                // Restablece el archivo progress.json al inicio de una nueva operación de conversión
+                error_log("Archivo cargado correctamente.");
                 $this->tracker->reset();
                 $inputFile = $_FILES['pdf']['tmp_name'];
                 $outputBase = __DIR__ . '/../tmps/' . uniqid('pdf_convert_');
                 $format = $_POST['format'];
                 $pages = $this->parsePageInput($_POST['pages']);
 
-                // Establece el número total de pasos
                 $this->tracker->setTotalSteps(count($pages));
 
                 foreach ($pages as $page) {
                     $outputFile = $outputBase . "_page_$page";
                     $this->model->convertPdf($inputFile, $outputFile, $format, $page);
-                    $this->tracker->incrementStep(); // Incremento tracker
-                    error_log("Página $page convertida."); // Log de seguimiento
+                    $this->tracker->incrementStep();
+                    error_log("Página $page convertida.");
                 }
 
                 $zipFile = $this->zipper->createZip($outputBase, $format);
-                error_log("Archivo ZIP creado: $zipFile"); // Log de seguimiento
+                error_log("Archivo ZIP creado: $zipFile");
 
-                // Guarda el nombre del archivo zip en la sesión
                 $_SESSION['zipFile'] = $zipFile;
 
-                // No envíes el archivo aquí, solo devuelve un éxito
+                header('Content-Type: application/json');
                 echo json_encode(['success' => true]);
                 exit;
             } else {
-                echo "Error al cargar el archivo: " . $_FILES['pdf']['error'];
-                error_log("Error al cargar el archivo: " . $_FILES['pdf']['error']); // Log de seguimiento
+                header('Content-Type: application/json');
+                echo json_encode(['error' => "Error al cargar el archivo: " . $_FILES['pdf']['error']]);
+                error_log("Error al cargar el archivo: " . $_FILES['pdf']['error']);
             }
         } else {
-            echo "Método no soportado o datos faltantes.";
-            error_log("Método no soportado o datos faltantes."); // Log de seguimiento
+            header('Content-Type: application/json');
+            echo json_encode(['error' => "Método no soportado o datos faltantes."]);
+            error_log("Método no soportado o datos faltantes.");
         }
     }
 
     public function download(): void
     {
-        // Recupera el nombre del archivo zip de la sesión
+        error_log("Iniciando descarga de archivo.");
         $zipFile = $_SESSION['zipFile'];
 
         if (file_exists($zipFile)) {
@@ -88,22 +91,22 @@ class PdfConverterController
 
             sleep(10);
 
-            // Elimina el archivo ZIP
             unlink($zipFile);
+            error_log("Archivo ZIP eliminado: $zipFile");
 
-            // Obtiene todos los archivos PNG en el directorio tmps
             $pngFiles = glob(__DIR__ . '/../tmps/*.png');
             $jpegFiles = glob(__DIR__ . '/../tmps/*.jpeg');
             $svgFiles = glob(__DIR__ . '/../tmps/*.svg');
 
-            // Elimina cada archivo PNG, JPEG y SVG
             foreach (array_merge($pngFiles, $jpegFiles, $svgFiles) as $file) {
                 if (is_file($file)) {
                     unlink($file);
                 }
             }
+            error_log("Archivos temporales eliminados.");
         } else {
             echo "Archivo no encontrado.";
+            error_log("Archivo no encontrado: $zipFile");
         }
     }
 

@@ -20,6 +20,11 @@
     <label for="pages">Especifica las páginas (ej. 1,3-5,7):</label><br>
     <input type="text" id="pages" name="pages"><br><br>
 
+    <?php
+    // Definir $jsonUrl y $operationId
+    $jsonUrl = '/path/to/progress.json'; // Define la ruta correcta al archivo JSON de progreso
+    $operationId = session_id(); // Usa el ID de sesión como operationId, o puedes definirlo según tus necesidades
+    ?>
 
     <input type="hidden" id="jsonUrl" name="jsonUrl" value="<?php echo $jsonUrl; ?>">
     <input type="hidden" id="operationId" name="operationId" value="<?php echo $operationId; ?>">
@@ -37,4 +42,3 @@
 </form>
 </body>
 </html>
-

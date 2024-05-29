@@ -1,4 +1,4 @@
-var jsonUrl = '/controller/progress.json';
+var jsonUrl = '../controller/progress.json';
 
 // Elementos de progreso
 var progressText = document.getElementById('progressText');

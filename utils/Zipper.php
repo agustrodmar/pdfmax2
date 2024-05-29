@@ -64,5 +64,4 @@ class Zipper
         $zip->close();
         return $zipFilename;
     }
-
 }
