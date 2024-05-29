@@ -22,6 +22,9 @@
         <p>Para convertir un odt, docx, o txt en PDF<a href="view/TextToPdfView.php">haz clic aquí</a></p>
         <h3>Utilidades PDFMax Tipo 3</h3>
         <p>Para convertir una imagen en PDF<a href="view/ImgToPdfView.php">haz clic aquí</a></p>
+        <p>Para añadir marca de agua a un PDF <a href="view/PdfWatermarkView.php">haz clic aquí</a></p>
+        <p>Para encriptar un PDF <a href="view/PdfEncrypterView.php">haz clic aquí</a></p>
+
 
 
 

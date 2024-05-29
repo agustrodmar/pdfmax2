@@ -55,10 +55,7 @@ class ImageToPdfController
                         readfile($pdfPath);
 
                         // Eliminar archivos temporales
-                        foreach ($imagePaths as $imagePath) {
-                            unlink($imagePath);
-                        }
-                        unlink($pdfPath);
+                        $this->eliminarArchivosTemporales($imagePaths, $pdfPath);
                         exit;
                     } else {
                         echo "Error al crear el archivo PDF.<br>";
@@ -73,8 +70,24 @@ class ImageToPdfController
             echo "Error: " . $e->getMessage() . "<br>";
         }
     }
+
+    /**
+     * Elimina los archivos temporales generados.
+     *
+     * @param array $imagePaths Rutas de las imágenes cargadas.
+     * @param string $pdfPath Ruta del archivo PDF generado.
+     * @return void
+     */
+    private function eliminarArchivosTemporales(array $imagePaths, string $pdfPath): void
+    {
+        foreach ($imagePaths as $imagePath) {
+            unlink($imagePath);
+        }
+        unlink($pdfPath);
+    }
 }
 
 // Crear una instancia del controlador y procesar la solicitud
 $controller = new ImageToPdfController();
 $controller->procesarSolicitud();
+
