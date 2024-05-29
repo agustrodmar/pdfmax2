@@ -21,9 +21,10 @@
 
     <p id="progressText"></p>
     <progress id="progressBar" value="0" max="100"></progress>
-    <p id="downloadLink" style="display: none;">
-        La conversión ha terminado. <a href="#" id="downloadUrl">Descarga tus imágenes aquí</a>
+    <p id="downloadMessage" style="display: none;">
+        La conversión ha terminado. <a id="downloadLink" href="#" style="display: none;">Descarga tus imágenes aquí</a>
     </p>
+
 
     <script src="../js/PdfConversionProgress.js"></script>
 

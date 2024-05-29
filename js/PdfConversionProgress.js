@@ -3,24 +3,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
     const downloadLink = document.getElementById('downloadLink');
-    const jsonUrl = '/controller/progress.php'; // Endpoint para recuperar el progreso
+    const downloadMessage = document.getElementById('downloadMessage');
+    const jsonUrl = '/var/www/html/pdfmax2/controller/progress.php'; // Endpoint para recuperar el progreso
 
     form.addEventListener('submit', async function (event) {
         event.preventDefault(); // Previene el comportamiento por defecto del formulario
         const uniqueId = 'pdf_convert_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        console.log('uniqueId generado:', uniqueId); // Registro de consola agregado
         const formData = new FormData(form);
         formData.append('uniqueId', uniqueId);
 
         try {
-            const response = await fetch('../controller/PdfConverterController.php', {
+            const response = await fetch('/var/www/html/pdfmax2/controller/PdfConverterController.php', {
                 method: 'POST',
                 body: formData
             });
 
             const result = await response.json();
             if (response.ok && result.success) {
-                startProgressPolling(uniqueId); // Asegúrate de pasar el uniqueId aquí
-                updateDownloadLink(uniqueId); // Actualiza el enlace de descarga
+                console.log('Inicio de sondeo de progreso para uniqueId:', uniqueId);
+                startProgressPolling(uniqueId);
             } else {
                 throw new Error('Network response was not ok or conversion failed');
             }
@@ -31,9 +33,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function updateDownloadLink(uniqueId) {
-        const downloadUrl = `../controller/downloadScript.php?uniqueId=${encodeURIComponent(uniqueId)}`;
-        document.getElementById('downloadUrl').href = downloadUrl; // Asegúrate de que 'downloadUrl' es el ID correcto para tu enlace.
-        document.getElementById('downloadLink').style.display = 'block';
+        const downloadUrl = `/var/www/html/pdfmax2/controller/downloadScript.php?uniqueId=${encodeURIComponent(uniqueId)}`;
+        console.log('updateDownloadLink uniqueId:', uniqueId); // Registro de consola agregado
+        downloadLink.href = downloadUrl;
+        downloadMessage.style.display = 'block';
+        downloadLink.style.display = 'inline';
     }
 
     function resetProgressUI() {
@@ -42,25 +46,31 @@ document.addEventListener('DOMContentLoaded', function () {
         downloadLink.style.display = 'none';
     }
 
-    function startProgressPolling(uniqueId) {
+    async function startProgressPolling(uniqueId) {
+        console.log('Iniciando la consulta de progreso para:', uniqueId);
         const intervalId = setInterval(async () => {
             try {
-                const progressResponse = await fetch(`${jsonUrl}?uniqueId=${encodeURIComponent(uniqueId)}&t=${new Date().getTime()}`);
+                const progressResponse = await
+                    fetch(`${jsonUrl}?uniqueId=${encodeURIComponent(uniqueId)}&t=${new Date().getTime()}`);
                 const progressData = await progressResponse.json();
+                console.log('Datos de progreso recibidos:', progressData);
 
-                const progress = progressData.totalSteps > 0 ?
-                    (progressData.currentStep / progressData.totalSteps) * 100 : 0;
+                const totalSteps = progressData.totalSteps ?? 0;
+                const currentStep = progressData.currentStep ?? 0;
+
+                const progress = totalSteps > 0 ? (currentStep / totalSteps) * 100 : 0;
 
                 progressBar.value = progress;
                 progressText.innerText = `Progreso: ${progress.toFixed(2)}%`;
 
                 if (progress >= 100) {
                     clearInterval(intervalId);
-                    downloadLink.style.display = 'block';
+                    updateDownloadLink(uniqueId);
                 }
             } catch (error) {
-                console.error('Error fetching progress:', error);
+                console.error('Error al obtener el progreso:', error);
                 clearInterval(intervalId);
+                progressText.innerText = 'Error al obtener el progreso.';
             }
         }, 1000);
     }

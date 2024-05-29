@@ -1,0 +1,12 @@
+{
+  "require": {
+    "symfony/process": "^6.4",
+    "predis/predis": "^2.2",
+    "ext-zip": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Utils\\": "utils/"
+    }
+  }
+}

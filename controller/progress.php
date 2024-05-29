@@ -1,8 +1,10 @@
 <?php
-session_start();
-header('Content-Type: application/json');
+
+session_start(); // Inicia la sesión
 
 $uniqueId = $_GET['uniqueId'] ?? '';
-// Accediendo a la estructura correcta basada en uniqueId
-$progress = $_SESSION[$uniqueId . '_progress'] ?? ['currentStep' => 0, 'totalSteps' => 0];
+$progress = $_SESSION[$uniqueId . '_progress'] ?? ['totalSteps' => 0, 'currentStep' => 0];
+
+header('Content-Type: application/json');
 echo json_encode($progress);
+

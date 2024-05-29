@@ -1,30 +1,35 @@
 <?php
+namespace Utils;
+
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
 class ProgressTracker {
-    /**
-     * Establece el número total de pasos en una sesión específica.
-     * @param int $totalSteps Total de pasos a configurar.
-     * @param string $uniqueId Identificador único para la sesión actual.
-     */
-    public function setTotalSteps(int $totalSteps, string $uniqueId): void
-    {
+    public function setTotalSteps(int $totalSteps, string $uniqueId): void {
         $_SESSION[$uniqueId . '_progress'] = ['totalSteps' => $totalSteps, 'currentStep' => 0];
+        error_log("Progreso inicializado: Total Steps - $totalSteps para uniqueId: $uniqueId");
+        session_write_close(); // Esto debería estar bien aquí.
     }
 
-    public function incrementStep($uniqueId): void
-    {
+    public function incrementStep(string $uniqueId): void {
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
         if (isset($_SESSION[$uniqueId . '_progress'])) {
             $_SESSION[$uniqueId . '_progress']['currentStep']++;
+            error_log("Current step incrementado: " . $_SESSION[$uniqueId . '_progress']['currentStep']); // Log para verificar el incremento
         }
+        session_write_close(); // Esto debería estar bien aquí.
     }
 
-    /**
-     * Resetea los valores de progreso para una sesión dada.
-     * @param string $uniqueId Identificador único para la sesión actual.
-     */
-    public function reset(string $uniqueId): void
-    {
-        $_SESSION[$uniqueId . '_currentStep'] = 0;
-        $_SESSION[$uniqueId . '_totalSteps'] = 0;
+    public function reset(string $uniqueId): void {
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+        unset($_SESSION[$uniqueId . '_progress']);
+        error_log("Progreso reseteado para uniqueId: $uniqueId");
+        session_write_close();
     }
 }
+
