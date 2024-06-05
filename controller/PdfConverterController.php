@@ -67,7 +67,7 @@ class PdfConverterController
     /**
      * Maneja la descarga del archivo ZIP generado y elimina archivos temporales.
      */
-    private function download(string $zipFile): void
+    public function download(string $zipFile): void
     {
         if (file_exists($zipFile)) {
             header('Content-Type: application/zip');

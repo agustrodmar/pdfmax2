@@ -24,6 +24,7 @@
         <p>Para convertir una imagen en PDF<a href="view/ImgToPdfView.php">haz clic aquí</a></p>
         <p>Para añadir marca de agua a un PDF <a href="view/PdfWatermarkView.php">haz clic aquí</a></p>
         <p>Para encriptar un PDF <a href="view/PdfEncrypterView.php">haz clic aquí</a></p>
+        <p>Para presentar un PDF <a href="view/PdfPresentView.php">haz clic aquí</a></p>
 
 
 

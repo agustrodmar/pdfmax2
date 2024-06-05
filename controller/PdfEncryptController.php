@@ -25,26 +25,37 @@ class PdfEncryptController
             $password = $_POST['password'];
             $outputPdfPath = $uploadDir . 'archivo_encriptado.pdf';
 
+            // Verificar que el archivo es un PDF
+            $fileType = mime_content_type($_FILES['pdf']['tmp_name']);
+            if ($fileType !== 'application/pdf') {
+                echo "El archivo cargado no es un PDF válido.<br>";
+                return;
+            }
+
             if ($_FILES['pdf']['error'] === UPLOAD_ERR_OK) {
                 if (move_uploaded_file($_FILES['pdf']['tmp_name'], $pdfPath)) {
-                    $encrypter = new PdfEncrypterModel();
-                    $isEncrypted = $encrypter->encryptPdf($pdfPath, $outputPdfPath, $password);
+                    try {
+                        $encrypter = new PdfEncrypterModel();
+                        $isEncrypted = $encrypter->encryptPdf($pdfPath, $outputPdfPath, $password);
 
-                    if ($isEncrypted && file_exists($outputPdfPath)) {
-                        header('Content-Type: application/pdf');
-                        header('Content-Disposition: attachment; filename="' . basename($outputPdfPath) . '"');
-                        header('Content-Length: ' . filesize($outputPdfPath));
-                        readfile($outputPdfPath);
+                        if ($isEncrypted && file_exists($outputPdfPath)) {
+                            header('Content-Type: application/pdf');
+                            header('Content-Disposition: attachment; filename="' . basename($outputPdfPath) . '"');
+                            header('Content-Length: ' . filesize($outputPdfPath));
+                            readfile($outputPdfPath);
 
-                        // Eliminar archivos temporales después de la descarga
-                        unlink($pdfPath);
-                        unlink($outputPdfPath);
-                        exit;
-                    } else {
-                        echo "Error al crear el archivo PDF encriptado.<br>";
-                        if (!$isEncrypted) {
-                            echo "Problema al ejecutar qpdf. Verifique los logs para más detalles.<br>";
+                            // Eliminar archivos temporales después de la descarga
+                            unlink($pdfPath);
+                            unlink($outputPdfPath);
+                            exit;
+                        } else {
+                            echo "Error al crear el archivo PDF encriptado.<br>";
+                            if (!$isEncrypted) {
+                                echo "Problema al ejecutar qpdf. Verifique los logs para más detalles.<br>";
+                            }
                         }
+                    } catch (Exception $e) {
+                        echo "Error durante la encriptación del PDF: " . $e->getMessage() . "<br>";
                     }
                 } else {
                     echo "Error al mover el archivo: " . htmlspecialchars($_FILES['pdf']['name']) . "<br>";
@@ -61,4 +72,3 @@ class PdfEncryptController
 // Crear una instancia del controlador y procesar la solicitud
 $controller = new PdfEncryptController();
 $controller->handleRequest();
-?>

@@ -13,7 +13,7 @@ class PdfWatermarkController {
         ini_set('display_startup_errors', 1);
         error_reporting(E_ALL);
 
-        $uploadDir = __DIR__ . '/../tmps/';
+        $uploadDir = realpath(__DIR__ . '/../tmps') . DIRECTORY_SEPARATOR;
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
@@ -23,23 +23,40 @@ class PdfWatermarkController {
             $watermarkPath = $uploadDir . basename($_FILES['watermark']['name']);
             $outputPdfPath = $uploadDir . 'archivo_salida.pdf';
 
+            // Verificar que los archivos son del tipo esperado
+            $pdfFileType = mime_content_type($_FILES['pdf']['tmp_name']);
+            $watermarkFileType = mime_content_type($_FILES['watermark']['tmp_name']);
+            if ($pdfFileType !== 'application/pdf') {
+                echo "El archivo cargado no es un PDF válido.<br>";
+                return;
+            }
+            if (!str_starts_with($watermarkFileType, 'image/')) {
+                echo "El archivo de marca de agua no es una imagen válida.<br>";
+                return;
+            }
+
             if ($_FILES['pdf']['error'] === UPLOAD_ERR_OK && $_FILES['watermark']['error'] === UPLOAD_ERR_OK) {
                 if (move_uploaded_file($_FILES['pdf']['tmp_name'], $pdfPath) && move_uploaded_file($_FILES['watermark']['tmp_name'], $watermarkPath)) {
-                    $watermarker = new PdfWatermarkerModel();
-                    $output = $watermarker->addWatermark($pdfPath, $watermarkPath, $outputPdfPath);
+                    try {
+                        $watermarker = new PdfWatermarkerModel();
+                        $output = $watermarker->addWatermark($pdfPath, $watermarkPath, $outputPdfPath);
 
-                    if (file_exists($outputPdfPath)) {
-                        header('Content-Type: application/pdf');
-                        header('Content-Disposition: attachment; filename="' . basename($outputPdfPath) . '"');
-                        header('Content-Length: ' . filesize($outputPdfPath));
-                        readfile($outputPdfPath);
+                        if (file_exists($outputPdfPath)) {
+                            header('Content-Type: application/pdf');
+                            header('Content-Disposition: attachment; filename="' . basename($outputPdfPath) . '"');
+                            header('Content-Length: ' . filesize($outputPdfPath));
+                            readfile($outputPdfPath);
 
-                        unlink($pdfPath);
-                        unlink($watermarkPath);
-                        unlink($outputPdfPath);
-                        exit;
-                    } else {
-                        echo "Error al procesar el archivo PDF: $output<br>";
+                            // Eliminar archivos temporales después de la descarga
+                            unlink($pdfPath);
+                            unlink($watermarkPath);
+                            unlink($outputPdfPath);
+                            exit;
+                        } else {
+                            echo "Error al procesar el archivo PDF: $output<br>";
+                        }
+                    } catch (Exception $e) {
+                        echo "Error durante el procesamiento del PDF: " . $e->getMessage() . "<br>";
                     }
                 } else {
                     echo "Error al mover los archivos subidos.<br>";

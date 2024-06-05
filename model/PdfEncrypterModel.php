@@ -37,4 +37,3 @@ class PdfEncrypterModel
         return $return_var === 0;
     }
 }
-?>
