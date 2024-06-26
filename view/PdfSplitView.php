@@ -12,14 +12,17 @@
     <label for="pdf">Selecciona el archivo PDF:</label><br>
     <input type="file" id="pdf" name="pdf" accept="application/pdf"><br><br>
 
-    <div id="pageInfo" style="display: none;">
-        <p id="pageCount"></p>
+    <div id="pageInfo">
+        <p id="pageCount">Número de páginas: 0</p>
     </div>
 
     <div id="rangesContainer">
-        <label for="range1">Rango 1:</label>
-        <input type="number" id="start1" name="ranges[0][start]" min="1" placeholder="Inicio">
-        <input type="number" id="end1" name="ranges[0][end]" min="1" placeholder="Fin"><br><br>
+        <div class="range">
+            <label for="start1">Rango 1:</label>
+            <input type="number" id="start1" name="ranges[0][start]" min="1" placeholder="Inicio">
+            <label for="end1"> a </label>
+            <input type="number" id="end1" name="ranges[0][end]" min="1" placeholder="Fin"><br><br>
+        </div>
     </div>
 
     <button type="button" id="addRangeButton">Añadir Rango</button><br><br>

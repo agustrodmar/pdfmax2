@@ -1,17 +1,25 @@
 <?php
 
 use JetBrains\PhpStorm\NoReturn;
-
 require_once '../model/PdfOptimizerModel.php';
+require_once '../utils/clean/TempCleaner.php'; // Asegúrate de incluir la ruta correcta
+
+use utils\clean\TempCleaner;
 
 /**
  * Controlador para manejar la optimización y descarga de archivos PDF.
  */
 class PdfOptimizerController {
+    private string $tempDir = '/var/tmp/pdfmax2_temps';
+
     /**
      * Constructor de la clase.
      */
-    public function __construct() {}
+    public function __construct() {
+        if (!file_exists($this->tempDir)) {
+            mkdir($this->tempDir, 0777, true);
+        }
+    }
 
     /**
      * Maneja la solicitud HTTP para optimizar y descargar un archivo PDF.
@@ -21,7 +29,7 @@ class PdfOptimizerController {
         if (isset($_POST['submit'])) {
             if (!empty($_FILES['pdfFile']['tmp_name'])) {
                 $inputFile = $_FILES['pdfFile']['tmp_name'];
-                $outputFile = __DIR__ . '/../tmps/' . uniqid('optimized_pdf');
+                $outputFile = $this->tempDir . '/' . uniqid('optimized_pdf');
 
                 try {
                     $success = $this->optimizePdf($inputFile, $outputFile);
@@ -37,6 +45,8 @@ class PdfOptimizerController {
                     if (file_exists($outputFile)) {
                         unlink($outputFile);
                     }
+                    $cleaner = new TempCleaner($this->tempDir);
+                    $cleaner->clean(); // Limpia el directorio temporal después de cada uso
                 }
             } else {
                 echo "Por favor, seleccione un archivo PDF.";
@@ -73,4 +83,3 @@ class PdfOptimizerController {
 
 $controller = new PdfOptimizerController();
 $controller->handleRequest();
-

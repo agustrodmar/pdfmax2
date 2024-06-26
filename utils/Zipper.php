@@ -3,12 +3,12 @@
 namespace Utils;
 use ZipArchive;
 
-
 /**
  * Clase para manejar la creación de archivos ZIP.
  */
 class Zipper
 {
+
     /**
      * Crea un archivo ZIP con todos los archivos de salida generados.
      * @param string $outputFilesBase Ruta base de los archivos de salida.
@@ -38,15 +38,17 @@ class Zipper
         return $zipFilename;
     }
 
+
     /**
      * Crea un archivo ZIP específicamente para los archivos PDF individuales.
      * @param array $outputPaths
+     * @param string $outputDir
      * @return string Ruta del archivo ZIP creado.
      */
-    public function createPdfZip(array $outputPaths): string {
+    public function createPdfZip(array $outputPaths, string $outputDir): string {
         set_time_limit(500);
         $zip = new ZipArchive();
-        $zipFilename = __DIR__ . '/../tmps/' . '/PDFs.zip';
+        $zipFilename = $outputDir . 'PDFs.zip';
 
         if ($zip->open($zipFilename, ZipArchive::CREATE) !== TRUE) {
             error_log("Cannot open <$zipFilename>");

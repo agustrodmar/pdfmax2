@@ -3,9 +3,7 @@
 use Utils\Zipper;
 require_once __DIR__ . '/PdfExtractorModel.php';
 require_once __DIR__ . '/../utils/Zipper.php';
-
-
-
+require_once __DIR__ . '/../utils/clean/TempCleaner.php';
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -14,8 +12,10 @@ error_reporting(E_ALL);
 /**
  * Modelo para la conversión de archivos PDF a texto y ODT.
  */
-class pdfToTextModel
+class PdfToTextModel
 {
+    private string $tempDir = '/var/tmp/pdfmax2_temps/';
+
     /**
      * Convierte un archivo PDF a texto.
      *
@@ -37,16 +37,16 @@ class pdfToTextModel
      */
     public function convertToOdt(string $file): string
     {
-        $outputDir = __DIR__ . '/../tmps/';
-        $htmlFile = __DIR__ . '/../tmps/' . uniqid('output') . '.html';
-        $odtFile = __DIR__ . '/../tmps/' . uniqid('output') . '.odt';
+        $outputDir = $this->tempDir;
+        $htmlFile = $outputDir . uniqid('output') . '.html';
+        $odtFile = $outputDir . uniqid('output') . '.odt';
 
         // pdftohtml para ir de pdf a html
         $command = "pdftohtml -stdout " . escapeshellarg($file) . " > " . escapeshellarg($htmlFile);
         shell_exec($command);
 
         // Pandoc para ir de html a odt.
-        $command = "pandoc -js " . escapeshellarg($htmlFile) . " -o " . escapeshellarg($odtFile);
+        $command = "pandoc -s " . escapeshellarg($htmlFile) . " -o " . escapeshellarg($odtFile);
         shell_exec($command);
 
         if (!file_exists($odtFile) || filesize($odtFile) === 0) {
@@ -54,8 +54,6 @@ class pdfToTextModel
         }
 
         $odtContent = file_get_contents($odtFile);
-        unlink($htmlFile);
-        unlink($odtFile);
         return $odtContent;
     }
 
@@ -71,7 +69,7 @@ class pdfToTextModel
     {
         error_log("Iniciando la conversión de páginas a ODT...");
 
-        $outputFilesBase = __DIR__ . '/../tmps/' . uniqid('output');
+        $outputFilesBase = $this->tempDir . uniqid('output');
         $pdfExtractor = new PDFExtractorModel();
         $pagesString = implode(' ', $pages);
 
@@ -80,7 +78,7 @@ class pdfToTextModel
         error_log("Archivo PDF con páginas extraídas generado: " . $pdfFile);
 
         // Convierte el archivo PDF a ODT sin eliminar el archivo ODT
-        $htmlFile = __DIR__ . '/../tmps/' . uniqid('output') . '.html';
+        $htmlFile = $this->tempDir . uniqid('output') . '.html';
         $odtFile = $outputFilesBase . '.odt';
 
         // pdftohtml para ir de pdf a html
@@ -89,7 +87,7 @@ class pdfToTextModel
         error_log("Archivo HTML generado: " . $htmlFile);
 
         // Pandoc para ir de html a odt.
-        $command = "pandoc -js " . escapeshellarg($htmlFile) . " -o " . escapeshellarg($odtFile);
+        $command = "pandoc -s " . escapeshellarg($htmlFile) . " -o " . escapeshellarg($odtFile);
         shell_exec($command);
         error_log("Archivo ODT generado: " . $odtFile);
 
@@ -97,14 +95,8 @@ class pdfToTextModel
             throw new Exception("Error generating ODT file.");
         }
 
-        unlink($htmlFile); // Elimina el archivo HTML después de su uso
-        unlink($pdfFile); // Elimina el archivo PDF después de su uso
-
-        error_log("Archivos temporales eliminados.");
+        error_log("Archivos temporales generados.");
 
         return $odtFile;
     }
 }
-
-
-

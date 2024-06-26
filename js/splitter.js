@@ -1,13 +1,12 @@
+// Configuración de la fuente del trabajador para pdf.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
 /**
  * Inicializa el script cuando el DOM está completamente cargado.
  */
 document.addEventListener("DOMContentLoaded", function() {
     let pageCount = 0;
 
-    /**
-     * Maneja el evento de cambio en el input de archivo PDF.
-     * @param {Event} event - El evento de cambio.
-     */
     document.getElementById('pdf').addEventListener('change', function(event) {
         loadPdf(event.target);
     });
@@ -21,11 +20,11 @@ document.addEventListener("DOMContentLoaded", function() {
             const file = input.files[0];
             if (file) {
                 const fileReader = new FileReader();
-                fileReader.onload = function() {
+                fileReader.onload = function(event) {
                     try {
-                        const typedarray = new Uint8Array(this.result);
+                        const typedarray = new Uint8Array(event.target.result);
 
-                        pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                        pdfjsLib.getDocument({data: typedarray}).promise.then(function(pdf) {
                             pageCount = pdf.numPages;
                             document.getElementById('pageCount').innerText = 'Número de páginas: ' + pageCount;
                             document.getElementById('pageInfo').style.display = 'block';
@@ -47,46 +46,35 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    /**
-     * Maneja el evento de clic en el botón para añadir un nuevo rango.
-     */
     document.getElementById('addRangeButton').addEventListener('click', function() {
         addRange();
     });
 
     /**
-     * Añade un nuevo rango de páginas.
+     * Añade un nuevo rango de páginas si los rangos anteriores están completos y válidos.
      */
     function addRange() {
-        try {
-            const rangesContainer = document.getElementById('rangesContainer');
-            const rangeCount = rangesContainer.children.length / 3 + 1; // 3 children per range
-            const rangeDiv = document.createElement('div');
+        const rangesContainer = document.getElementById('rangesContainer');
+        const rangeCount = rangesContainer.querySelectorAll('div.range').length + 1;
+        const rangeDiv = document.createElement('div');
+        rangeDiv.classList.add('range');
 
-            rangeDiv.innerHTML = `<label for="range${rangeCount}">Rango ${rangeCount}:</label>
-                                  <input type="number" id="start${rangeCount}" name="ranges[${rangeCount - 1}][start]" min="1" placeholder="Inicio">
-                                  <input type="number" id="end${rangeCount}" name="ranges[${rangeCount - 1}][end]" min="1" placeholder="Fin"><br><br>`;
+        rangeDiv.innerHTML = `<label for="start${rangeCount}">Rango ${rangeCount}:</label>
+                              <input type="number" id="start${rangeCount}" name="ranges[${rangeCount - 1}][start]" min="1" placeholder="Inicio">
+                              <label for="end${rangeCount}"> a </label>
+                              <input type="number" id="end${rangeCount}" name="ranges[${rangeCount - 1}][end]" min="1" placeholder="Fin"><br><br>`;
 
-            rangesContainer.appendChild(rangeDiv);
-            updateRangeLimits();
-        } catch (error) {
-            console.error("Error al añadir un nuevo rango:", error);
-            alert("Error al añadir un nuevo rango.");
-        }
+        rangesContainer.appendChild(rangeDiv);
+        updateRangeLimits();
     }
 
     /**
      * Actualiza los límites de los inputs de rango de páginas.
      */
     function updateRangeLimits() {
-        try {
-            const inputs = document.querySelectorAll('#rangesContainer input[type="number"]');
-            inputs.forEach(input => {
-                input.setAttribute('max', pageCount);
-            });
-        } catch (error) {
-            console.error("Error al actualizar los límites de los rangos:", error);
-            alert("Error al actualizar los límites de los rangos.");
-        }
+        const inputs = document.querySelectorAll('#rangesContainer input[type="number"]');
+        inputs.forEach(input => {
+            input.setAttribute('max', pageCount);
+        });
     }
 });

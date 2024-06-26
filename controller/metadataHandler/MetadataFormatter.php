@@ -1,6 +1,5 @@
 <?php
 
-
 class MetadataFormatter
 {
     /**
@@ -21,9 +20,10 @@ class MetadataFormatter
      * Convierte los metadatos crudos en un formato más amigable y utilizable.
      *
      * @param string $metadata Metadatos en formato de texto crudo.
+     * @param int $numPages Número de páginas del PDF.
      * @return array Metadatos formateados como un arreglo asociativo.
      */
-    public static function getFriendlyMetadata(string $metadata): array
+    public static function getFriendlyMetadata(string $metadata, int $numPages): array
     {
         $friendlyMetadata = [];
         $lines = explode("\n", $metadata);
@@ -36,14 +36,31 @@ class MetadataFormatter
                 $nextValue = true;
             } elseif ($nextValue) {
                 $value = trim(str_replace('InfoValue:', '', $line));
-                $friendlyMetadata[$currentKey] = match ($currentKey) {
-                    'Author', 'Title', 'Subject', 'Keywords' => html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                $translatedKey = match ($currentKey) {
+                    'Author' => 'Autor',
+                    'Title' => 'Título',
+                    'Subject' => 'Tema',
+                    'Keywords' => 'Palabras Clave',
+                    'ModDate' => 'Fecha de Modificación',
+                    'CreationDate' => 'Fecha de Creación',
+                    'Producer' => 'Productor',
+                    'Creator' => 'Creador',
+                    default => $currentKey,
+                };
+                $friendlyMetadata[$translatedKey] = match ($currentKey) {
                     'ModDate', 'CreationDate' => self::formatPdfDate($value),
-                    default => $value,
+                    default => html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                 };
                 $nextValue = false;
             }
         }
+
+        // Se asegura de que siempre se enseñen los campos:
+        $friendlyMetadata['Número de Páginas'] = $numPages;
+        $friendlyMetadata['Tema'] = $friendlyMetadata['Tema'] ?? '';
+        $friendlyMetadata['Palabras Clave'] = $friendlyMetadata['Palabras Clave'] ?? '';
+        $friendlyMetadata['Título'] = $friendlyMetadata['Título'] ?? '';
+
         return $friendlyMetadata;
     }
 }

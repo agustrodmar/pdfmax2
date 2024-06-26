@@ -28,6 +28,10 @@ class PdfSplitModel
                 throw new Exception("El inicio del rango no puede ser mayor que el final del rango.");
             }
 
+            if ($startPage < 1 || $endPage < 1) {
+                throw new Exception("Los números de página deben ser mayores que 0.");
+            }
+
             $outputPdfPath = $outputDir . "document_" . $docIndex . ".pdf";
             $command = "pdftk $inputPdf cat $startPage-$endPage output $outputPdfPath";
             $output = [];

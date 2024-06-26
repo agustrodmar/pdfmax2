@@ -1,89 +1,88 @@
 <?php
 
+require_once __DIR__ . '/../utils/clean/TempCleaner.php';
 require_once __DIR__ . '/../model/PdfPresenterModel.php';
 
-/**
- * Clase PdfPresenterController
- * Este controlador maneja la subida y eliminación de archivos PDF.
- */
-class PdfPresenterController
-{
+class PdfPresenterController {
     /**
-     * Procesa la solicitud para subir y visualizar un archivo PDF.
+     * Maneja la solicitud para ver y eliminar un archivo PDF.
      *
      * @return void
+     * @throws Exception
      */
-    public function procesarSolicitud(): void
-    {
-        try {
-            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf'])) {
-                $uploadDir = __DIR__ . '/../tmps/'; // Directorio de carga
+    public function handleRequest(): void {
+        ini_set('display_errors', 1);
+        ini_set('display_startup_errors', 1);
+        error_reporting(E_ALL);
 
-                // Crear el directorio de carga si no existe
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
+        error_log("Iniciando PdfPresenterController");
 
-                // Validar el archivo PDF cargado
-                if ($_FILES['pdf']['error'] === UPLOAD_ERR_OK) {
-                    $fileInfo = finfo_open(FILEINFO_MIME_TYPE);
-                    $mimeType = finfo_file($fileInfo, $_FILES['pdf']['tmp_name']);
-                    finfo_close($fileInfo);
-
-                    if ($mimeType === 'application/pdf') {
-                        $uniqueId = uniqid('PDF_', true); // Generar un ID único
-                        $pdfFile = $uploadDir . $uniqueId . '_' . basename($_FILES['pdf']['name']); // Establecer la ruta de destino con ID único
-
-                        // Mover el archivo cargado al directorio de destino
-                        if (move_uploaded_file($_FILES['pdf']['tmp_name'], $pdfFile)) {
-                            $relativePath = str_replace(__DIR__ . '/../', '', $pdfFile);
-                            header('Location: ../view/PdfView.php?file=' . urlencode($relativePath));
-                            exit;
-                        } else {
-                            echo "Error al mover el archivo: " . htmlspecialchars($_FILES['pdf']['name']) . "<br>";
-                        }
-                    } else {
-                        echo "El archivo subido no es un PDF válido.<br>";
-                    }
-                } else {
-                    echo "Error al cargar el archivo PDF: " . htmlspecialchars($_FILES['pdf']['name']) . " - Código de error: " . $_FILES['pdf']['error'] . "<br>";
-                }
-            } else {
-                echo "No se ha enviado el archivo PDF.<br>";
-            }
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage() . "<br>";
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pdf'])) {
+            $this->handleFileUpload();
+        } elseif (isset($_GET['delete']) && $_GET['delete'] === 'true' && isset($_GET['file'])) {
+            $this->deleteFile($_GET['file']);
+        } else {
+            echo "No se ha especificado un archivo PDF.";
+            error_log("No se ha especificado un archivo PDF.");
         }
     }
 
     /**
-     * Elimina un archivo PDF especificado.
+     * Maneja la subida del archivo PDF.
      *
      * @return void
+     * @throws Exception
      */
-    public function eliminarArchivo(): void
-    {
-        if (isset($_GET['file'])) {
-            $file = __DIR__ . '/../' . $_GET['file'];
+    private function handleFileUpload(): void {
+        $uploadDir = '/var/tmp/pdfmax2_temps/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
 
-            // Validar que el archivo existe y es un PDF
-            if (file_exists($file) && mime_content_type($file) === 'application/pdf') {
-                unlink($file);
-                echo "Archivo eliminado.";
+        $file = $_FILES['pdf'];
+        $fileName = preg_replace('/[^A-Za-z0-9_\-.]/', '_', basename($file['name']));
+        $filePath = $uploadDir . $fileName;
+
+        if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            $model = new PdfPresenterModel();
+            if ($model->presentPdf($filePath)) {
+                // Devolver la URL segura del archivo
+                echo json_encode(['fileUrl' => "/pdfmax2_temps/$fileName"]);
             } else {
-                echo "Archivo no válido o no encontrado.";
+                echo "Archivo no válido.";
+                error_log("Archivo no válido: $filePath");
             }
         } else {
-            echo "No se ha especificado un archivo para eliminar.";
+            echo "Error al subir el archivo.";
+            error_log("Error al subir el archivo: " . $file['name']);
+        }
+    }
+
+    /**
+     * Elimina el archivo PDF especificado.
+     *
+     * @param string $file El archivo PDF a eliminar.
+     * @return void
+     */
+    private function deleteFile(string $file): void {
+        error_log("Eliminando archivo PDF: $file");
+
+        $filePath = realpath(__DIR__ . '/../' . $file);
+        if ($filePath && mime_content_type($filePath) === 'application/pdf') {
+            unlink($filePath);
+            echo "Archivo eliminado: $file";
+            error_log("Archivo eliminado: $file");
+        } else {
+            echo "Error al eliminar el archivo.";
+            error_log("Error al eliminar el archivo: $file");
         }
     }
 }
 
-// Crear una instancia del controlador y procesar la solicitud o eliminar el archivo
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller = new PdfPresenterController();
-    $controller->procesarSolicitud();
-} elseif (isset($_GET['delete']) && $_GET['delete'] === 'true') {
-    $controller = new PdfPresenterController();
-    $controller->eliminarArchivo();
+$controller = new PdfPresenterController();
+try {
+    $controller->handleRequest();
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
+    error_log("Error en el controlador principal: " . $e->getMessage());
 }

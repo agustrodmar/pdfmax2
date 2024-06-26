@@ -32,4 +32,18 @@ class PdfConverterModel {
 
         return $outputFile . '.' . $extension;
     }
+
+    /**
+     * Comprueba si el PDF está encriptado o dañado.
+     *
+     * @param string $inputFile Ruta al archivo PDF de entrada.
+     * @return bool Verdadero si el archivo está encriptado o dañado, falso en caso contrario.
+     */
+    public function isPdfEncryptedOrDamaged(string $inputFile): bool {
+        $output = shell_exec("pdfinfo " . escapeshellarg($inputFile) . " 2>&1");
+        if (str_contains($output, "Encrypted") || str_contains($output, "error")) {
+            return true;
+        }
+        return false;
+    }
 }

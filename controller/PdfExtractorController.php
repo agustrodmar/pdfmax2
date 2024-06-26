@@ -63,15 +63,14 @@ class PDFExtractorController {
 
             $pdfArchivo = $_FILES["pdfArchivo"]["tmp_name"];
             $paginas = str_replace(",", " ", $_POST["paginas"]);
-            // En lugar de usar sys_get_temp_dir(), especifica la ruta relativa
             $outputFilesBase = __DIR__ . '/../tmps/' . 'PDF';
-
+            $outputDir = __DIR__ . '/../tmps/';
 
             $pdfExtractor = new PDFExtractorModel();
             $outputPaths = $pdfExtractor->extraerPaginasIndividuales($pdfArchivo, $paginas, $outputFilesBase);
 
             $zipper = new Utils\Zipper();
-            $zipFilename = $zipper->createPdfZip($outputPaths);
+            $zipFilename = $zipper->createPdfZip($outputPaths, $outputDir);
 
             header('Content-Type: application/zip');
             header('Content-Disposition: attachment; filename="' . basename($zipFilename) . '"');
@@ -86,5 +85,6 @@ class PDFExtractorController {
 }
 
 $controller = new PDFExtractorController();
-$resultado = ($_POST["downloadMode"] === 'multiple') ? $controller->procesarSolicitudIndividual() : $controller->procesarSolicitud();
+$resultado = ($_POST["downloadMode"] === 'multiple') ? $controller->procesarSolicitudIndividual() :
+    $controller->procesarSolicitud();
 echo "Resultado: " . $resultado;

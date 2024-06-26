@@ -44,16 +44,35 @@ class PdfConverterController
                     return;
                 }
 
+                // Validar si el PDF está encriptado o dañado
+                if ($this->model->isPdfEncryptedOrDamaged($inputFile)) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['error' => "El archivo PDF está encriptado o dañado."]);
+                    return;
+                }
+
                 $outputBase = __DIR__ . '/../tmps/' . uniqid('pdf_convert_');
                 $format = htmlspecialchars($_POST['format']);
-                $pages = $this->parsePageInput(htmlspecialchars($_POST['pages']));
+                $pages = htmlspecialchars($_POST['pages']);
 
-                foreach ($pages as $page) {
+                // Validar los rangos de páginas
+                try {
+                    $this->validarPaginas($pages);
+                } catch (Exception $e) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['error' => $e->getMessage()]);
+                    return;
+                }
+
+                $pagesArray = $this->parsePageInput($pages);
+
+                // Convertir cada página especificada
+                foreach ($pagesArray as $page) {
                     $outputFile = $outputBase . "_page_$page";
                     $this->model->convertPdf($inputFile, $outputFile, $format, $page);
                 }
 
-                // Crea un archivo ZIP con los resultados
+                // Crear un archivo ZIP con los resultados
                 $zipFile = $this->zipper->createZip($outputBase, $format);
                 $_SESSION['zipFile'] = $zipFile;
 
@@ -71,6 +90,7 @@ class PdfConverterController
 
     /**
      * Maneja la descarga del archivo ZIP generado y elimina archivos temporales.
+     * @param string $zipFile Ruta del archivo ZIP.
      */
     public function download(string $zipFile): void
     {
@@ -116,10 +136,31 @@ class PdfConverterController
     }
 
     /**
+     * Valida los rangos de páginas especificados por el usuario.
+     * @param string $paginas String con rangos de páginas.
+     * @throws Exception Si los rangos de páginas no son válidos.
+     */
+    private function validarPaginas(string $paginas): void
+    {
+        $pagesArray = preg_split('/[\s,]+/', $paginas);
+
+        foreach ($pagesArray as $pagina) {
+            if (str_contains($pagina, '-')) {
+                list($start, $end) = explode('-', $pagina);
+                if (!is_numeric($start) || !is_numeric($end) || $start > $end) {
+                    throw new Exception("Error: Rango de páginas inválido '$pagina'. Por favor, introduce un rango de páginas válido: de menor a mayor (ej. 1-5, 10-15).");
+                }
+            } else {
+                if (!is_numeric($pagina)) {
+                    throw new Exception("Error: Página inválida '$pagina'. Por favor, introduce un número de página válido.");
+                }
+            }
+        }
+    }
+
+    /**
      * Elimina los archivos temporales generados después de la creación del Zip.
-     *
      * @param string $pattern Patrón de búsqueda de los archivos a eliminar.
-     * @return void
      */
     private function deleteFiles(string $pattern): void
     {

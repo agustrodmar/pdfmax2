@@ -31,7 +31,11 @@ class TextToPdfModel {
             throw new Exception("El archivo especificado no existe o no se puede leer.");
         }
 
-        $outputDir = __DIR__ . '/../tmps/';
+        $outputDir = '/var/tmp/pdfmax2_temps/' . uniqid('pdf_convert_', true);
+        if (!mkdir($outputDir, 0777, true) && !is_dir($outputDir)) {
+            throw new Exception(sprintf('El directorio "%s" no pudo ser creado', $outputDir));
+        }
+
         $outputFileName = basename($file, '.' . pathinfo($file, PATHINFO_EXTENSION)) . ".pdf";
         $outputFile = $outputDir . '/' . $outputFileName;
 

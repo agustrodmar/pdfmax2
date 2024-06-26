@@ -1,7 +1,10 @@
 <?php
 
+use utils\clean\TempCleaner;
+
 require_once(__DIR__ . '/../model/TextToPdfModel.php');
 require_once __DIR__ . '/../utils/PdfResponseSender.php';
+require_once __DIR__ . '/../utils/TempCleaner.php';
 
 /**
  * Clase TextToPdfController
@@ -35,6 +38,13 @@ class TextToPdfController {
      * @throws Exception Si ocurre algún error durante la conversión.
      */
     public function convert(): void {
+        $uploadDir = '/var/tmp/pdfmax2_temps/' . uniqid('pdf_upload_', true);
+        if (!mkdir($uploadDir, 0777, true) && !is_dir($uploadDir)) {
+            throw new Exception(sprintf('El directorio "%s" no pudo ser creado', $uploadDir));
+        }
+
+        $cleaner = new TempCleaner($uploadDir);
+
         try {
             $file = $_FILES['file']['tmp_name'];
             $pages = $_POST['pages'] ?? '';
@@ -43,7 +53,7 @@ class TextToPdfController {
                 throw new Exception("Error en la carga del archivo o archivo no recibido.");
             }
 
-            // Soporta ODT DOCKX y TXT
+            // Soporta ODT, DOCX y TXT
             $allowedTypes = [
                 'application/vnd.oasis.opendocument.text', // ODT
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
@@ -54,11 +64,20 @@ class TextToPdfController {
                 throw new Exception("Tipo de archivo no soportado. Los archivos deben ser ODT, DOCX o TXT.");
             }
 
-            $outputFile = $this->model->convertToPdf($file, $pages);
+            // Mover el archivo subido al directorio temporal seguro
+            $safeFilePath = $uploadDir . '/' . basename($_FILES['file']['name']);
+            if (!move_uploaded_file($file, $safeFilePath)) {
+                throw new Exception("Error al mover el archivo subido.");
+            }
+
+            $outputFile = $this->model->convertToPdf($safeFilePath, $pages);
             $this->sendPdfToClient($outputFile);
         } catch (Exception $e) {
             http_response_code(500);
             echo $e->getMessage();
+        } finally {
+            // Limpiar el directorio temporal
+            $cleaner->clean();
         }
     }
 }
@@ -67,4 +86,5 @@ $controller = new TextToPdfController();
 try {
     $controller->convert();
 } catch (Exception $e) {
+    echo $e->getMessage();
 }

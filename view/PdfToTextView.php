@@ -15,7 +15,7 @@
         <h2>Seleccione un archivo PDF y el formato de salida:</h2>
         <form action="../controller/PdfToTextController.php" method="post" enctype="multipart/form-data">
             <label for="pdfArchivo">Archivo PDF:</label>
-            <input type="file" name="file" id="pdfArchivo" required>
+            <input type="file" name="file" id="pdfArchivo" accept="application/pdf" required>
             <label for="formato">Formato de salida:</label>
             <select name="format" id="formato" required>
                 <option value="">--Por favor elija un formato--</option>
@@ -23,7 +23,7 @@
                 <option value="odt">OpenDocument (ODT)</option>
             </select>
             <label for="paginas">Páginas:</label>
-            <input type="text" name="pages" id="paginas" placeholder="Ejemplo: 1,2,3 o 1-3" required>
+            <input type="text" name="pages" id="paginas" placeholder="Ejemplo: 1,2,3 o 1-3">
             <button type="submit">Convertir</button>
         </form>
     </section>
