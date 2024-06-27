@@ -1,8 +1,6 @@
 <?php
 
-use Utils\Zipper;
 require_once __DIR__ . '/PdfExtractorModel.php';
-require_once __DIR__ . '/../utils/Zipper.php';
 require_once __DIR__ . '/../utils/clean/TempCleaner.php';
 
 ini_set('display_errors', 1);
@@ -37,66 +35,39 @@ class PdfToTextModel
      */
     public function convertToOdt(string $file): string
     {
-        $outputDir = $this->tempDir;
-        $htmlFile = $outputDir . uniqid('output') . '.html';
-        $odtFile = $outputDir . uniqid('output') . '.odt';
+        $outputFilesBase = $this->tempDir . uniqid('output');
+        $htmlFile = $outputFilesBase . '.html';
+        $odtFile = $outputFilesBase . '.odt';
 
-        // pdftohtml para ir de pdf a html
-        $command = "pdftohtml -stdout " . escapeshellarg($file) . " > " . escapeshellarg($htmlFile);
-        shell_exec($command);
+        // pdftohtml para convertir de pdf a html
+        $command = "pdftohtml -c -noframes " . escapeshellarg($file) . " " . escapeshellarg($htmlFile);
+        error_log("Ejecutando comando pdftohtml: $command");
+        $output = shell_exec($command);
+        error_log("Salida pdftohtml: $output");
 
-        // Pandoc para ir de html a odt.
-        $command = "pandoc -s " . escapeshellarg($htmlFile) . " -o " . escapeshellarg($odtFile);
-        shell_exec($command);
+        // Verificar si el archivo HTML fue generado correctamente
+        if (!file_exists($htmlFile) || filesize($htmlFile) === 0) {
+            throw new Exception("Error generando el archivo HTML. Archivo no encontrado o vacío.");
+        }
 
+        // Limpiar el contenido HTML para eliminar la ruta del archivo
+        $htmlContent = file_get_contents($htmlFile);
+        $htmlContent = preg_replace('/<title>.*<\/title>/s', '', $htmlContent);
+        $htmlContent = preg_replace('/<meta name="generator" content="pdftohtml.*?\/>/s', '', $htmlContent);
+        file_put_contents($htmlFile, $htmlContent);
+
+        // Pandoc para convertir de html a odt
+        $command = "pandoc " . escapeshellarg($htmlFile) . " -o " . escapeshellarg($odtFile);
+        error_log("Ejecutando comando pandoc: $command");
+        $output = shell_exec($command);
+        error_log("Salida pandoc: $output");
+
+        // Verificar si el archivo ODT fue generado correctamente
         if (!file_exists($odtFile) || filesize($odtFile) === 0) {
-            throw new Exception("Error generating ODT file.");
+            throw new Exception("Error generando el archivo ODT. Archivo no encontrado o vacío.");
         }
 
         $odtContent = file_get_contents($odtFile);
         return $odtContent;
-    }
-
-    /**
-     * Convierte páginas específicas de un archivo PDF a ODT.
-     *
-     * @param string $file Ruta del archivo PDF a convertir.
-     * @param array $pages Las páginas a convertir.
-     * @return string Ruta del archivo ZIP con los archivos ODT.
-     * @throws Exception Si no se pudo crear el archivo de salida.
-     */
-    public function convertPagesToOdt(string $file, array $pages): string
-    {
-        error_log("Iniciando la conversión de páginas a ODT...");
-
-        $outputFilesBase = $this->tempDir . uniqid('output');
-        $pdfExtractor = new PDFExtractorModel();
-        $pagesString = implode(' ', $pages);
-
-        // Extrae las páginas del PDF en un solo archivo
-        $pdfFile = $pdfExtractor->extraerPaginas($file, $pagesString, $outputFilesBase . '.pdf');
-        error_log("Archivo PDF con páginas extraídas generado: " . $pdfFile);
-
-        // Convierte el archivo PDF a ODT sin eliminar el archivo ODT
-        $htmlFile = $this->tempDir . uniqid('output') . '.html';
-        $odtFile = $outputFilesBase . '.odt';
-
-        // pdftohtml para ir de pdf a html
-        $command = "pdftohtml -stdout " . escapeshellarg($pdfFile) . " > " . escapeshellarg($htmlFile);
-        shell_exec($command);
-        error_log("Archivo HTML generado: " . $htmlFile);
-
-        // Pandoc para ir de html a odt.
-        $command = "pandoc -s " . escapeshellarg($htmlFile) . " -o " . escapeshellarg($odtFile);
-        shell_exec($command);
-        error_log("Archivo ODT generado: " . $odtFile);
-
-        if (!file_exists($odtFile) || filesize($odtFile) === 0) {
-            throw new Exception("Error generating ODT file.");
-        }
-
-        error_log("Archivos temporales generados.");
-
-        return $odtFile;
     }
 }

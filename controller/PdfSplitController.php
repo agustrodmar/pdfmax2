@@ -5,7 +5,7 @@ use Utils\Zipper;
 
 require_once __DIR__ . '/../model/PdfSplitModel.php';
 require_once __DIR__ . '/../utils/Zipper.php';
-require_once __DIR__ . '/../utils/TempCleaner.php';
+require_once __DIR__ . '/../utils/clean/TempCleaner.php';
 
 class PdfSplitController
 {

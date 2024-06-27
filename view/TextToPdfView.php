@@ -2,43 +2,47 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Convertir ODT a PDF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de Texto a PDF</title>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("conversionForm").onsubmit = function() {
-                var fileInput = document.querySelector('input[type="file"]');
-                var fileSize = fileInput.files[0].size;
-                var maxFileSize = 2 * 1024 * 1024; // 2MB
-                if (fileSize > maxFileSize) {
-                    alert("El archivo no debe superar los 2MB.");
-                    return false;
+        function togglePageField() {
+            const fileInput = document.getElementById('textArchivo');
+            const pagesField = document.getElementById('paginas');
+            const file = fileInput.files[0];
+            if (file) {
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                if (fileExtension === 'txt') {
+                    pagesField.disabled = true;
+                    pagesField.value = '';
+                } else {
+                    pagesField.disabled = false;
                 }
-                return true;
-            };
-        });
+            }
+        }
     </script>
 </head>
 <body>
 <header>
-    <h1>Convertidor de Texto txt, docx y odt, a PDF</h1>
+    <h1>Conversor de Texto a PDF</h1>
 </header>
 
 <main>
     <section>
-        <h2>Seleccione un archivo ODT para convertirlo a PDF:</h2>
-        <form id="conversionForm" action="../controller/TextToPdfController.php" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" required>
-            <label>
-                <p>Selecciona el número de páginas que desea transformar a PDF: </p>
-                <input type="text" name="pages" placeholder="Ej: 1, 2-4, 7" required>
-            </label>
-            <button type="submit">Convertir a PDF</button>
+        <h2>Seleccione un archivo de texto para convertir a PDF:</h2>
+        <form action="../controller/TextToPdfController.php" method="post" enctype="multipart/form-data">
+            <label for="textArchivo">Archivo de Texto:</label>
+            <input type="file" name="file" id="textArchivo" accept=".odt,.docx,.txt" required onchange="togglePageField()">
+            <label for="paginas">Páginas:</label>
+            <input type="text" name="pages" id="paginas" placeholder="Ejemplo: 1,2,3 o 1-3">
+            <p>Ingrese las páginas a extraer en un formato válido. Ejemplo: 1-3 o 1,2,3</p>
+            <button type="submit">Convertir</button>
         </form>
     </section>
 </main>
 
 <footer>
-    <p>© <?php echo date("Y"); ?> Conversor de ODT a PDF</p>
+    <p>© <?php echo date("Y"); ?> Conversor de Texto a PDF</p>
 </footer>
+
 </body>
 </html>

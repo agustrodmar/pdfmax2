@@ -23,7 +23,6 @@
                 <option value="odt">OpenDocument (ODT)</option>
             </select>
             <label for="paginas">Páginas:</label>
-            <input type="text" name="pages" id="paginas" placeholder="Ejemplo: 1,2,3 o 1-3">
             <button type="submit">Convertir</button>
         </form>
     </section>

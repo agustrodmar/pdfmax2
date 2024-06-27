@@ -2,28 +2,28 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Ver PDF</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-        }
-        embed {
-            width: 100%;
-            height: 100vh;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentador de PDF</title>
 </head>
 <body>
-<h1>Ver PDF</h1>
-<form id="pdfForm" action="../controller/PdfPresenterController.php" method="post" enctype="multipart/form-data">
-    <label for="pdf">Selecciona el archivo PDF:</label><br>
-    <input type="file" id="pdf" name="pdf" accept="application/pdf"><br><br>
-    <input type="submit" value="Visualizar PDF">
-</form>
-<embed id="pdfViewer" src="" type="application/pdf" style="display:none;" />
-<script src="../js/pdfViewer.js"></script>
+<header>
+    <h1>Presentador de PDF</h1>
+</header>
+
+<main>
+    <section>
+        <h2>Seleccione un archivo PDF para visualizar:</h2>
+        <form action="../controller/PdfPresenterController.php" method="post" enctype="multipart/form-data">
+            <label for="pdfArchivo">Archivo PDF:</label>
+            <input type="file" name="file" id="pdfArchivo" accept="application/pdf" required>
+            <button type="submit">Visualizar PDF</button>
+        </form>
+    </section>
+</main>
+
+<footer>
+    <p>© <?php echo date("Y"); ?> Presentador de PDF</p>
+</footer>
+
 </body>
 </html>

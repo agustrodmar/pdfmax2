@@ -4,7 +4,7 @@ use utils\clean\TempCleaner;
 
 require_once(__DIR__ . '/../model/TextToPdfModel.php');
 require_once __DIR__ . '/../utils/PdfResponseSender.php';
-require_once __DIR__ . '/../utils/TempCleaner.php';
+require_once __DIR__ . '/../utils/clean/TempCleaner.php';
 
 /**
  * Clase TextToPdfController
@@ -60,8 +60,16 @@ class TextToPdfController {
                 'text/plain' // TXT
             ];
 
-            if (!in_array($_FILES['file']['type'], $allowedTypes)) {
+            $fileType = mime_content_type($file);
+            $fileExtension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
+
+            if (!in_array($fileType, $allowedTypes) || !in_array($fileExtension, ['odt', 'docx', 'txt'])) {
                 throw new Exception("Tipo de archivo no soportado. Los archivos deben ser ODT, DOCX o TXT.");
+            }
+
+            // Ignorar el rango de páginas si el archivo es TXT
+            if ($fileExtension === 'txt') {
+                $pages = '';
             }
 
             // Mover el archivo subido al directorio temporal seguro
@@ -71,6 +79,15 @@ class TextToPdfController {
             }
 
             $outputFile = $this->model->convertToPdf($safeFilePath, $pages);
+
+            // Validar el rango de páginas si se ha especificado
+            if ($pages && $fileExtension !== 'txt') {
+                $totalPages = $this->getTotalPages($outputFile);
+                if (!$this->isValidPageRange($pages, $totalPages)) {
+                    throw new Exception("El rango de páginas especificado no es válido. El documento tiene $totalPages páginas.");
+                }
+            }
+
             $this->sendPdfToClient($outputFile);
         } catch (Exception $e) {
             http_response_code(500);
@@ -79,6 +96,56 @@ class TextToPdfController {
             // Limpiar el directorio temporal
             $cleaner->clean();
         }
+    }
+
+
+    /**
+     * Obtiene el número total de páginas en un archivo PDF.
+     *
+     * @param string $filePath La ruta del archivo PDF.
+     * @return int El número total de páginas en el PDF.
+     * @throws Exception Si no se puede obtener el número de páginas.
+     */
+    private function getTotalPages(string $filePath): int {
+        $output = [];
+        $returnVar = 0;
+        exec("pdfinfo " . escapeshellarg($filePath), $output, $returnVar);
+
+        if ($returnVar !== 0) {
+            throw new Exception("No se pudo obtener el número total de páginas del documento PDF.");
+        }
+
+        foreach ($output as $line) {
+            if (preg_match('/^Pages:\s+(\d+)$/', $line, $matches)) {
+                return (int)$matches[1];
+            }
+        }
+
+        throw new Exception("No se pudo determinar el número de páginas del documento PDF.");
+    }
+
+    /**
+     * Verifica si el rango de páginas es válido respecto al número total de páginas del documento.
+     *
+     * @param string $pages El rango de páginas a verificar.
+     * @param int $totalPages El número total de páginas en el documento.
+     * @return bool True si el rango es válido, False en caso contrario.
+     */
+    private function isValidPageRange(string $pages, int $totalPages): bool {
+        $pageRanges = explode(',', $pages);
+        foreach ($pageRanges as $range) {
+            if (str_contains($range, '-')) {
+                list($start, $end) = explode('-', $range);
+                if ($start > $end || $start < 1 || $end > $totalPages) {
+                    return false;
+                }
+            } else {
+                if ($range < 1 || $range > $totalPages) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
 
